@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude → GitHub Pages 자동 배포 가이드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --accent2: #47c9ff;
+      --text: #e0e0e0;
+      --text-muted: #777;
+      --code-bg: #141414;
+      --success: #4dff91;
+      --warning: #ffb347;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(232,255,71,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .meta {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* Layout */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    /* Intro box */
+    .intro-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 24px 28px;
+      margin-bottom: 56px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .intro-box p { font-size: 15px; color: #ccc; }
+    .intro-box strong { color: var(--accent); font-weight: 500; }
+
+    /* Section */
+    .step-section {
+      margin-bottom: 64px;
+      position: relative;
+    }
+
+    .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--accent2);
+      margin: 28px 0 12px;
+    }
+
+    p { margin-bottom: 14px; font-size: 15px; }
+
+    /* Code block */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: #1e1e1e;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #d0d0d0;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #222;
+      color: var(--accent2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Callout */
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    .callout.warn {
+      background: rgba(255,179,71,0.08);
+      border: 1px solid rgba(255,179,71,0.25);
+    }
+
+    .callout.success {
+      background: rgba(77,255,145,0.06);
+      border: 1px solid rgba(77,255,145,0.2);
+    }
+
+    .callout.info {
+      background: rgba(71,201,255,0.06);
+      border: 1px solid rgba(71,201,255,0.2);
+    }
+
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout p { margin: 0; }
+
+    /* Step list */
+    .step-list {
+      counter-reset: steps;
+      list-style: none;
+    }
+
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .step-list li::before {
+      content: counter(steps);
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .step-list li span { font-size: 15px; }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 24px 0;
+    }
+
+    .flow-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .flow-item:first-child { border-radius: 6px 6px 0 0; }
+    .flow-item:last-child { border-radius: 0 0 6px 6px; }
+    .flow-item + .flow-item { border-top: none; }
+
+    .flow-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+    .flow-text { font-size: 14px; }
+    .flow-text strong { color: var(--accent); font-weight: 500; }
+    .flow-text small { color: var(--text-muted); font-size: 12px; display: block; }
+
+    .flow-arrow {
+      text-align: center;
+      color: var(--border);
+      font-size: 18px;
+      line-height: 1;
+      margin: -1px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Usage section */
+    .usage-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      margin: 16px 0;
+    }
+
+    .usage-card h4 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .usage-card p { margin: 0; font-size: 15px; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Syntax highlight colors */
+    .kw { color: #c792ea; }
+    .st { color: #c3e88d; }
+    .cm { color: #546e7a; }
+    .fn { color: #82aaff; }
+    .nm { color: var(--accent2); }
+
+    @media (max-width: 640px) {
+      .header-inner, .container, footer { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 22px; }
+      .meta { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="breadcrumb">
+      <a href="index.html">← 목차로 돌아가기</a>
+    </div>
+    <h1>Claude → GitHub Pages<br><em>자동 배포 시스템</em> 구축 가이드</h1>
+    <div class="meta">
+      <span>📅 2026-03-30</span>
+      <span>⏱ 약 20분</span>
+      <span>🏷 GitHub · Deploy · Claude Code</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="intro-box">
+    <p>
+      Claude가 만든 HTML 파일을 <strong>GitHub Pages에 반자동으로 배포</strong>하는 시스템입니다.
+      배포 전 미리보기를 확인하고, 승인하면 push까지 자동으로 처리됩니다.
+      이 가이드는 실제 세팅 과정을 그대로 담았습니다.
+    </p>
+  </div>
+
+  <!-- 전체 플로우 -->
+  <div class="step-section">
+    <div class="step-label">Overview</div>
+    <h2>전체 플로우</h2>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-icon">✍️</div>
+        <div class="flow-text">
+          <strong>Claude가 HTML 생성</strong>
+          <small>Claude Code 또는 claude.ai에서 요청</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#222; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼</div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-text">
+          <strong>deploy.sh → 브라우저 미리보기</strong>
+          <small>로컬에서 직접 확인</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#222; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼</div>
+      </div>
+      <div class="flow-item" style="border-left: 3px solid var(--accent);">
+        <div class="flow-icon">✅</div>
+        <div class="flow-text">
+          <strong>y 입력 → 승인</strong>
+          <small>이 단계에서 배포 여부 결정</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#222; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼</div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon">🚀</div>
+        <div class="flow-text">
+          <strong>git push → GitHub Pages 반영</strong>
+          <small>약 1~2분 후 URL에서 확인 가능</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-section">
+    <div class="step-label">Step 01</div>
+    <h2>GitHub 레포 만들기</h2>
+
+    <p>배포할 문서들을 저장할 GitHub 레포를 생성합니다.</p>
+
+    <ul class="step-list">
+      <li><span><a href="https://github.com/new" style="color:var(--accent2)">github.com/new</a> 접속</span></li>
+      <li><span>Repository name: <code>docs</code></span></li>
+      <li><span>Visibility: <strong>Public</strong></span></li>
+      <li><span>Add README: <strong>On</strong> (초기 파일 필요)</span></li>
+      <li><span><strong>Create repository</strong> 클릭</span></li>
+    </ul>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <p>이름을 <code>docs</code>로 하면 URL이 <code>eunnwk.github.io/docs</code>로 깔끔하게 나옵니다.</p>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-section">
+    <div class="step-label">Step 02</div>
+    <h2>GitHub Pages 활성화</h2>
+
+    <ul class="step-list">
+      <li><span>레포 상단 <strong>Settings</strong> 탭 클릭</span></li>
+      <li><span>왼쪽 메뉴 → <strong>Pages</strong></span></li>
+      <li><span>Source → <strong>Deploy from a branch</strong></span></li>
+      <li><span>Branch → <strong>main</strong> / <strong>(root)</strong> → <strong>Save</strong></span></li>
+    </ul>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <p>저장 후 <code>https://eunnwk.github.io/docs</code> URL이 활성화됩니다. 첫 배포 전까지는 404가 뜨는 게 정상입니다.</p>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-section">
+    <div class="step-label">Step 03</div>
+    <h2>맥북에 클론 & deploy.sh 생성</h2>
+
+    <h3>레포 클론</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>cd ~/Desktop
+git clone https://github.com/eunnwk/docs
+cd docs</code></pre>
+    </div>
+
+    <h3>deploy.sh 생성</h3>
+
+    <p>nano 에디터로 파일을 만듭니다:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>nano deploy.sh</code></pre>
+    </div>
+
+    <p>에디터가 열리면 아래 내용 붙여넣기:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">deploy.sh</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>#!/bin/bash
+echo "미리보기를 열게요..."
+open "$1"
+
+echo ""
+echo "배포할까요? (y/n)"
+read answer
+
+if [ "$answer" = "y" ]; then
+  git add .
+  git commit -m "docs: $(date '+%Y-%m-%d %H:%M')"
+  git push origin main
+  echo "완료! https://eunnwk.github.io/docs"
+else
+  echo "취소"
+fi</code></pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>저장: <code>Ctrl+O → Enter → Ctrl+X</code></p>
+    </div>
+
+    <h3>실행 권한 부여</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>chmod +x deploy.sh
+
+# 확인 (x 권한 보이면 성공)
+ls -la deploy.sh
+# → -rwxr-xr-x ...</code></pre>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-section">
+    <div class="step-label">Step 04</div>
+    <h2>배포 테스트</h2>
+
+    <p>간단한 테스트 파일로 전체 플로우를 확인합니다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>./deploy.sh index.html</code></pre>
+    </div>
+
+    <ul class="step-list">
+      <li><span>브라우저에서 미리보기가 열립니다</span></li>
+      <li><span>터미널로 돌아와 <code>y</code> 입력 → 배포 진행</span></li>
+      <li><span>약 1~2분 후 <code>https://eunnwk.github.io/docs</code> 확인</span></li>
+    </ul>
+  </div>
+
+  <!-- Step 5 실제 사용 -->
+  <div class="step-section">
+    <div class="step-label">Step 05</div>
+    <h2>실제 사용 방법</h2>
+
+    <p>세팅 완료 후 실제로 쓰는 방법은 아주 단순합니다.</p>
+
+    <div class="usage-card">
+      <h4>Claude Code에서</h4>
+      <p>"UX Talk 보조 페이지 HTML 만들어서 <code>~/Desktop/docs</code>에 저장하고 deploy.sh 실행해줘"</p>
+    </div>
+
+    <div class="usage-card">
+      <h4>수동으로</h4>
+      <p>Claude가 만든 HTML 파일을 <code>~/Desktop/docs</code>에 넣고 → <code>./deploy.sh 파일명.html</code></p>
+    </div>
+
+    <h3>index.html을 목차로 관리하기</h3>
+    <p>
+      <code>index.html</code>은 목차 페이지로 사용합니다. 새 문서를 배포할 때마다 index.html에 링크를 추가하는 방식으로 관리합니다.
+      Claude에게 "index.html에 이 문서 링크 추가해줘"라고 하면 자동으로 처리됩니다.
+    </p>
+
+    <div class="callout success">
+      <div class="callout-icon">🎯</div>
+      <p>이 가이드 자체도 <code>./deploy.sh deploy-guide.html</code> 로 배포되었습니다.</p>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="step-section">
+    <div class="step-label">Tips</div>
+    <h2>트러블슈팅</h2>
+
+    <h3>터미널에 <code>bquote&gt;</code> 가 뜰 때</h3>
+    <p><code>Ctrl+C</code> 로 탈출. heredoc(<code>&lt;&lt; 'EOF'</code>) 방식으로 스크립트를 만들 때 백틱이 섞이면 발생합니다. nano 에디터로 직접 만드는 방법을 권장합니다.</p>
+
+    <h3>Pages URL이 404일 때</h3>
+    <p>Settings → Pages에서 Source 설정이 <strong>main / (root)</strong>인지 확인. 첫 push 후 1~2분 기다리면 됩니다.</p>
+
+    <h3>push 시 인증 오류가 날 때</h3>
+    <p>GitHub Personal Access Token이 필요할 수 있습니다. <code>github.com → Settings → Developer Settings → Personal access tokens</code>에서 생성하세요.</p>
+  </div>
+
+</div>
+
+<footer>
+  <span>eunnwk.github.io/docs</span>
+  <a href="index.html">← 목차</a>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'copied!';
+    btn.style.color = 'var(--success)';
+    btn.style.borderColor = 'var(--success)';
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
