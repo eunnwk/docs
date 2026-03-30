@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Think Tank — 멀티 컴퓨터 사용 가이드</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg: #f8f7f4;
+  --surface: #ffffff;
+  --ink: #1c1c1a;
+  --ink2: #4a4a46;
+  --muted: #9a9a92;
+  --border: #e4e2da;
+  --accent: #1a6b3c;
+  --accent-bg: #eaf5ee;
+  --warn-bg: #fffbeb;
+  --warn-border: #f0c040;
+  --code-bg: #f2f0eb;
+  --blue: #1a4fa0;
+  --blue-bg: #eef3fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 300;
+  line-height: 1.85;
+  font-size: 14px;
+}
+
+.page { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* Hero */
+.hero {
+  padding: 56px 0 36px;
+  border-bottom: 1.5px solid var(--ink);
+  margin-bottom: 48px;
+}
+
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+
+.hero-sub { font-size: 14px; color: var(--ink2); }
+
+/* Section */
+.section { margin-bottom: 52px; }
+
+h2 {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 24px 0 10px;
+}
+
+p { font-size: 14px; color: var(--ink2); margin-bottom: 14px; }
+
+/* Code */
+.code {
+  background: var(--code-bg);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.code-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--border);
+  background: #eae8e2;
+}
+
+.code-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.copy-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--blue);
+  border: 0.5px solid var(--blue);
+  background: none;
+  padding: 2px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.copy-btn:hover { background: var(--blue-bg); }
+.copy-btn.done { color: var(--accent); border-color: var(--accent); }
+
+pre {
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cm { color: var(--muted); }
+.hl { color: var(--accent); font-weight: 600; }
+
+/* Note */
+.note {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 14px 0;
+}
+
+.note.tip { background: var(--blue-bg); color: #1a3a6a; border: 0.5px solid #b0c8f0; }
+.note.warn { background: var(--warn-bg); color: #5a4000; border: 0.5px solid var(--warn-border); }
+.note.ok { background: var(--accent-bg); color: #1a4a2e; border: 0.5px solid #8cd4a8; }
+
+.note-icon { flex-shrink: 0; font-size: 15px; line-height: 1.65; }
+
+/* Steps */
+.steps { list-style: none; counter-reset: sc; margin: 14px 0; }
+.steps li {
+  counter-increment: sc;
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 14px;
+  color: var(--ink2);
+  align-items: flex-start;
+}
+.steps li:last-child { border-bottom: none; }
+.steps li::before {
+  content: counter(sc);
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin-top: 1px;
+}
+
+/* Scenario card */
+.card {
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--code-bg);
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.card-title { font-weight: 500; font-size: 14px; color: var(--ink); }
+.card-sub { font-size: 12px; color: var(--muted); }
+.card-body { padding: 16px 18px; }
+
+/* Divider */
+hr { border: none; border-top: 0.5px solid var(--border); margin: 40px 0; }
+
+/* Footer */
+.footer {
+  padding: 32px 0 0;
+  border-top: 1.5px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-left .ft { font-weight: 700; font-size: 16px; }
+.footer-left .fs { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+.footer-right { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-align: right; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="eyebrow">Think Tank · Multi Device Guide</div>
+    <h1>다른 컴퓨터에서<br>Think Tank 쓰기</h1>
+    <p class="hero-sub">GitHub로 연동된 think-tank를 어느 컴퓨터에서든 이어서 사용하는 방법</p>
+  </div>
+
+  <!-- 구조 이해 -->
+  <div class="section">
+    <h2>구조 이해</h2>
+    <p>두 컴퓨터 사이에 GitHub가 중간 다리 역할을 해요.</p>
+    <div class="code">
+      <div class="code-top"><span class="code-lang">sync 구조</span></div>
+      <pre><span class="hl">맥북프로 (회사)</span>
+    ↕  git push / pull
+  <span class="hl">GitHub (eunnwk/think-tank)</span>
+    ↕  git push / pull
+<span class="hl">윈도우 데스크탑 (집)</span></pre>
+    </div>
+    <div class="note tip">
+      <div class="note-icon">💡</div>
+      <div>작업 시작 전 <code>git pull</code>, 끝난 후 <code>git push</code> — 이 두 가지만 기억하면 돼요.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 시나리오 1: 맥북 (이미 있음) -->
+  <div class="section">
+    <h2>시나리오 A — 맥북프로 (이미 세팅됨)</h2>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#eaf5ee;">💻</div>
+        <div>
+          <div class="card-title">매일 사용 루틴</div>
+          <div class="card-sub">회사 맥북프로에서 쓸 때</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>작업 시작할 때</h3>
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">터미널</span>
+            <button class="copy-btn" onclick="cp(this,'cd ~/think-tank\ngit pull\nclaude')">복사</button>
+          </div>
+          <pre><span class="cm"># 1. think-tank 폴더로 이동</span>
+cd ~/think-tank
+
+<span class="cm"># 2. 다른 컴퓨터 내용 받기</span>
+git pull
+
+<span class="cm"># 3. Claude Code 실행</span>
+claude</pre>
+        </div>
+
+        <h3>작업 끝날 때</h3>
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">터미널</span>
+            <button class="copy-btn" onclick="cp(this,'git add .\ngit commit -m \"오늘 작업\"\ngit push')">복사</button>
+          </div>
+          <pre><span class="cm"># 오늘 내용 저장 후 올리기</span>
+git add .
+git commit -m "오늘 작업"
+git push</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 시나리오 2: 새 컴퓨터 처음 세팅 -->
+  <div class="section">
+    <h2>시나리오 B — 새 컴퓨터에서 처음 세팅</h2>
+    <p>집 윈도우 데스크탑처럼 <strong>처음 쓰는 컴퓨터</strong>라면 아래 순서대로 한 번만 하면 돼요.</p>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#eef3fc;">🖥️</div>
+        <div>
+          <div class="card-title">처음 한 번만 — 클론</div>
+          <div class="card-sub">새 컴퓨터 최초 세팅</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ol class="steps">
+          <li>Claude Code 설치<br>
+            <div class="code" style="margin-top:8px;">
+              <div class="code-top">
+                <span class="code-lang">터미널</span>
+                <button class="copy-btn" onclick="cp(this,'npm install -g @anthropic-ai/claude-code')">복사</button>
+              </div>
+              <pre>npm install -g @anthropic-ai/claude-code</pre>
+            </div>
+            <div class="note tip" style="margin-top:6px;">
+              <div class="note-icon">💡</div>
+              <div>npm이 없다고 나오면 <strong>nodejs.org</strong>에서 Node.js 먼저 설치</div>
+            </div>
+          </li>
+          <li>GitHub에서 think-tank 가져오기
+            <div class="code" style="margin-top:8px;">
+              <div class="code-top">
+                <span class="code-lang">터미널</span>
+                <button class="copy-btn" onclick="cp(this,'git clone https://github.com/eunnwk/think-tank.git\ncd think-tank')">복사</button>
+              </div>
+              <pre>git clone https://github.com/eunnwk/think-tank.git
+cd think-tank</pre>
+            </div>
+          </li>
+          <li>Claude Code 실행
+            <div class="code" style="margin-top:8px;">
+              <div class="code-top">
+                <span class="code-lang">터미널</span>
+                <button class="copy-btn" onclick="cp(this,'claude')">복사</button>
+              </div>
+              <pre>claude</pre>
+            </div>
+            <div class="note tip" style="margin-top:6px;">
+              <div class="note-icon">💡</div>
+              <div>"trust this folder?" 물으면 <code>1</code> 입력 후 Enter</div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="note ok">
+          <div class="note-icon">✅</div>
+          <div>클론 이후부터는 맥북과 똑같이 <code>git pull</code> 시작 / <code>git push</code> 마무리 루틴으로 쓰면 돼요.</div>
+        </div>
+
+        <h3>클론 이후 매일 루틴</h3>
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">터미널 — 작업 시작</span>
+            <button class="copy-btn" onclick="cp(this,'cd think-tank\ngit pull\nclaude')">복사</button>
+          </div>
+          <pre><span class="cm"># 폴더 이동 (클론한 위치 기준)</span>
+cd think-tank
+git pull
+claude</pre>
+        </div>
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">터미널 — 작업 끝</span>
+            <button class="copy-btn" onclick="cp(this,'git add .\ngit commit -m \"오늘 작업\"\ngit push')">복사</button>
+          </div>
+          <pre>git add .
+git commit -m "오늘 작업"
+git push</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 자주 겪는 상황 -->
+  <div class="section">
+    <h2>자주 겪는 상황</h2>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head">
+        <div class="card-icon" style="background:#fff8e6;">⚠️</div>
+        <div>
+          <div class="card-title">git push 할 때 로그인 요청이 뜨면?</div>
+          <div class="card-sub">GitHub 인증 오류</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>GitHub에서 Personal Access Token을 발급받아야 해요.</p>
+        <ol class="steps">
+          <li>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</li>
+          <li>Generate new token → repo 체크 → 생성</li>
+          <li>비밀번호 입력 창에 토큰 붙여넣기</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head">
+        <div class="card-icon" style="background:#eef3fc;">🔄</div>
+        <div>
+          <div class="card-title">git pull 할 때 충돌이 나면?</div>
+          <div class="card-sub">두 컴퓨터에서 같은 파일을 동시에 수정했을 때</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Claude Code에 그대로 말하면 해결해줘요.</p>
+        <div class="code">
+          <div class="code-top"><span class="code-lang">Claude Code에 입력</span></div>
+          <pre>git pull 하다가 충돌 났어. 해결해줘.</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#eaf5ee;">📁</div>
+        <div>
+          <div class="card-title">think-tank 폴더 위치가 헷갈리면?</div>
+          <div class="card-sub">폴더 찾기</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">터미널</span>
+            <button class="copy-btn" onclick="cp(this,'find ~ -name \"think-tank\" -type d 2>/dev/null')">복사</button>
+          </div>
+          <pre><span class="cm"># 맥</span>
+find ~ -name "think-tank" -type d 2>/dev/null</pre>
+        </div>
+        <div class="code">
+          <div class="code-top">
+            <span class="code-lang">윈도우 PowerShell</span>
+            <button class="copy-btn" onclick="cp(this,'Get-ChildItem -Path $HOME -Recurse -Directory -Filter think-tank')">복사</button>
+          </div>
+          <pre>Get-ChildItem -Path $HOME -Recurse -Directory -Filter think-tank</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 한눈에 보기 -->
+  <div class="section">
+    <h2>한눈에 보기</h2>
+    <div class="code">
+      <div class="code-top"><span class="code-lang">전체 루틴 요약</span></div>
+      <pre><span class="hl">새 컴퓨터 (처음 한 번)</span>
+  npm install -g @anthropic-ai/claude-code
+  git clone https://github.com/eunnwk/think-tank.git
+  cd think-tank → claude
+
+<span class="hl">매일 시작</span>
+  cd ~/think-tank (또는 cd think-tank)
+  git pull
+  claude
+
+<span class="hl">매일 마무리</span>
+  git add .
+  git commit -m "오늘 작업"
+  git push</pre>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">
+      <div class="ft">Think Tank</div>
+      <div class="fs">Multi Device Guide · v1.0 · 2026.03</div>
+    </div>
+    <div class="footer-right">
+      eunnwk/think-tank · Private<br>
+      github.com/eunnwk/think-tank
+    </div>
+  </div>
+
+</div>
+
+<script>
+function cp(btn, txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.textContent = '복사됨 ✓';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('done'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>

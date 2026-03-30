@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gmail 회의 메일 → Google Calendar 자동 등록</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --accent: #2563EB;
+    --accent-light: #EFF6FF;
+    --accent-mid: #BFDBFE;
+    --dark: #1e1e1e;
+    --code-green: #86efac;
+    --code-comment: #6b7280;
+    --text: #111827;
+    --text-sub: #6B7280;
+    --border: #E5E7EB;
+    --bg: #F9FAFB;
+    --white: #ffffff;
+    --warn-bg: #FFFBEB;
+    --warn-border: #F59E0B;
+    --ok-bg: #F0FDF4;
+    --ok-border: #22C55E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text);
+    background: var(--white);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* HEADER */
+  .doc-header {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+  .doc-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .doc-header .subtitle { color: var(--text-sub); font-size: 14px; }
+  .badge {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-right: 6px;
+    margin-top: 8px;
+  }
+
+  /* SPEC TABLE */
+  .spec-table {
+    display: flex; gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .spec-table .item {
+    flex: 1;
+    padding: 14px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .spec-table .item:last-child { border-right: none; }
+  .spec-table .label { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .spec-table .value { font-weight: 700; font-size: 15px; }
+
+  /* SECTIONS */
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 32px 0 12px;
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; }
+
+  /* STEP */
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin: 24px 0 8px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+  }
+  .step-body { flex: 1; }
+  .step-body strong { font-size: 16px; display: block; margin-bottom: 2px; }
+  .step-body span { font-size: 13px; color: var(--text-sub); }
+
+  /* CODE */
+  pre {
+    background: var(--dark);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  pre code { color: var(--code-green); }
+  .comment { color: var(--code-comment); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: #DC2626;
+  }
+  pre code { background: none; border: none; padding: 0; color: var(--code-green); }
+
+  /* CALLOUTS */
+  .callout {
+    display: flex; gap: 12px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .callout-icon { flex-shrink: 0; font-size: 16px; }
+  .callout.info { background: var(--accent-light); border-left: 3px solid var(--accent); }
+  .callout.warn { background: var(--warn-bg); border-left: 3px solid var(--warn-border); }
+  .callout.ok   { background: var(--ok-bg); border-left: 3px solid var(--ok-border); }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--accent-mid);
+  }
+  td {
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--bg); }
+
+  /* FAQ */
+  .faq-item { margin: 24px 0; }
+  .faq-q {
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  /* LOG EXAMPLE */
+  .log-line { display: flex; gap: 16px; align-items: baseline; }
+  .log-line .cmd { color: var(--code-green); }
+  .log-line .note { color: var(--code-comment); font-size: 12px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <h1>📧 Gmail 회의 메일 → Google Calendar 자동 등록</h1>
+  <div class="subtitle">Google Apps Script 설치 가이드</div>
+  <div>
+    <span class="badge">v3</span>
+    <span class="badge">2026.03.23</span>
+    <span class="badge">버그 수정</span>
+    <span class="badge">회의 취소 자동 삭제</span>
+  </div>
+</div>
+
+<div class="spec-table">
+  <div class="item"><div class="label">소요 시간</div><div class="value">약 10분</div></div>
+  <div class="item"><div class="label">필요 조건</div><div class="value">회사 Google 계정</div></div>
+  <div class="item"><div class="label">비용</div><div class="value">무료</div></div>
+</div>
+
+<h2>동작 방식</h2>
+<p>이 스크립트는 Google Apps Script를 이용해 Gmail을 자동으로 감시하고, 회의 메일이 도착하면 내용을 파싱하여 Google Calendar에 일정을 등록합니다. 회의 취소 메일이 오면 등록된 일정을 자동으로 삭제합니다.</p>
+<div class="callout info">
+  <span class="callout-icon">ℹ️</span>
+  <span>스크립트는 본인의 Google 계정에서만 동작합니다. 팀원 각자 설치가 필요합니다.</span>
+</div>
+
+<h2>설치 방법</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <strong>Apps Script 열기</strong>
+    <span>script.google.com 접속 → 새 프로젝트 생성</span>
+  </div>
+</div>
+<div class="callout info">
+  <span class="callout-icon">ℹ️</span>
+  <span><strong>script.google.com</strong> 접속 → 왼쪽 상단 <strong>[+ 새 프로젝트]</strong> 클릭 → 프로젝트 이름을 <code>Gmail 회의 자동 등록</code>으로 변경</span>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <strong>Code.gs 파일에 코드 붙여넣기</strong>
+    <span>기존 내용 전체 삭제 후 아래 코드를 붙여넣기</span>
+  </div>
+</div>
+<p>① 에디터에서 <code>Ctrl+A</code> → <code>Delete</code> 로 삭제 &nbsp; ② 아래 코드 복사 후 <code>Ctrl+V</code></p>
+<pre><code><span class="comment">// ================================================
+// v3 - 2026.03.23
+// 버그 수정: 시간 범위 파싱 오류 (15:00~16:00)
+// 신규: 회의 취소 메일 감지 시 캘린더 일정 자동 삭제
+// ================================================</span>
+
+const CONFIG = {
+  SEARCH_QUERY: 'subject:(회의 OR 회의소집 OR 회의취소 OR 미팅 OR meeting OR Meeting) is:unread',
+  PROCESSED_LABEL: '캘린더등록완료',
+  LOOK_BACK_HOURS: 24,
+  CALENDAR_ID: 'primary',
+  GEMINI_API_KEY: '',
+  DEFAULT_DURATION_MIN: 60,
+};
+
+function processMeetingEmails() {
+  var label = getOrCreateLabel(CONFIG.PROCESSED_LABEL);
+  var cutoff = new Date(Date.now() - CONFIG.LOOK_BACK_HOURS * 60 * 60 * 1000);
+  var threads = GmailApp.search(CONFIG.SEARCH_QUERY);
+  var created = 0, skipped = 0;
+
+  for (var i = 0; i &lt; threads.length; i++) {
+    var thread = threads[i];
+    var msg = thread.getMessages()[0];
+    if (msg.getDate() &lt; cutoff) continue;
+
+    var labels = thread.getLabels();
+    var alreadyDone = false;
+    for (var j = 0; j &lt; labels.length; j++) {
+      if (labels[j].getName() === CONFIG.PROCESSED_LABEL) { alreadyDone = true; break; }
+    }
+    if (alreadyDone) { skipped++; continue; }
+
+    var emailData = {
+      subject: msg.getSubject(),
+      body: msg.getPlainBody().substring(0, 2000),
+      from: msg.getFrom(),
+    };
+
+    <span class="comment">// 취소 메일 처리</span>
+    if (/취소|canceled|cancelled|cancel/i.test(emailData.subject)) {
+      var cancelInfo = parseWithRegex(emailData);
+      if (cancelInfo) { deleteCalendarEvent(cancelInfo); }
+      thread.addLabel(label);
+      skipped++;
+      continue;
+    }
+
+    console.log('처리 중: ' + emailData.subject);
+    var info = parseWithRegex(emailData);
+    if (info) {
+      createCalendarEvent(info);
+      thread.addLabel(label);
+      created++;
+      console.log('등록완료: ' + info.title);
+    } else { skipped++; }
+  }
+  console.log('완료 - 등록:' + created + ' 건너뜀:' + skipped);
+}
+
+function deleteCalendarEvent(info) {
+  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
+    || CalendarApp.getDefaultCalendar();
+  var searchStart = new Date(info.startDateTime.getTime() - 60*60*1000);
+  var searchEnd   = new Date(info.startDateTime.getTime() + 60*60*1000);
+  var events = cal.getEvents(searchStart, searchEnd);
+  for (var i = 0; i &lt; events.length; i++) {
+    if (events[i].getTitle() === info.title) {
+      events[i].deleteEvent();
+      console.log('캘린더 일정 삭제: ' + info.title);
+    }
+  }
+}
+
+function setupTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i &lt; triggers.length; i++) { ScriptApp.deleteTrigger(triggers[i]); }
+  ScriptApp.newTrigger('processMeetingEmails').timeBased().everyMinutes(15).create();
+  console.log('트리거 설정 완료');
+}
+
+function getOrCreateLabel(name) {
+  var label = GmailApp.getUserLabelByName(name);
+  if (!label) label = GmailApp.createLabel(name);
+  return label;
+}</code></pre>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <strong>Parser.gs 파일 추가</strong>
+    <span>왼쪽 파일 목록에서 + 버튼 클릭 → Script → 이름: Parser</span>
+  </div>
+</div>
+<p>새로 생긴 Parser.gs 파일에 아래 코드를 붙여넣기</p>
+<pre><code><span class="comment">// ================================================
+// v2 - 2026.03.23
+// 버그 수정: 15:00~16:00 형식 시간 범위 파싱 오류
+// ================================================</span>
+
+function parseWithRegex(emailData) {
+  var text = emailData.subject + '\n' + emailData.body;
+  var date = null;
+  var d1 = text.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  var d2 = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if (d1) { date = d1[1]+'-'+pad(d1[2])+'-'+pad(d1[3]); }
+  else if (d2) { date = new Date().getFullYear()+'-'+pad(d2[1])+'-'+pad(d2[2]); }
+
+  <span class="comment">// 1순위: HH:MM ~ HH:MM 범위 직접 매칭</span>
+  var hmRange = text.match(/([0-2]?\d:[0-5]\d)\s*(?:~|-)\s*([0-2]?\d:[0-5]\d)/);
+  var startTime, endTime;
+  var krRange = text.match(/(오전|오후)?\s*(\d{1,2})시(?:\s*(\d{1,2})분)?\s*(?:~|부터|-)\s*(오전|오후)?\s*(\d{1,2})시(?:\s*(\d{1,2})분)?/);
+
+  if (hmRange) {
+    startTime=hmRange[1]; endTime=hmRange[2];
+  } else if (krRange) {
+    var sAmPm=krRange[1],sH=parseInt(krRange[2]),sM=krRange[3]?parseInt(krRange[3]):0;
+    var eAmPm=krRange[4]||krRange[1],eH=parseInt(krRange[5]),eM=krRange[6]?parseInt(krRange[6]):0;
+    if (sAmPm==='오후'&amp;&amp;sH&lt;12) sH+=12; if (sAmPm==='오전'&amp;&amp;sH===12) sH=0;
+    if (eAmPm==='오후'&amp;&amp;eH&lt;12) eH+=12; if (eAmPm==='오전'&amp;&amp;eH===12) eH=0;
+    startTime=pad(sH)+':'+pad(sM); endTime=pad(eH)+':'+pad(eM);
+  } else {
+    var krTimes=[],krRe=/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?/g,km;
+    while ((km=krRe.exec(text))!==null) {
+      var h=parseInt(km[2]),m=km[3]?parseInt(km[3]):0;
+      if (km[1]==='오후'&amp;&amp;h&lt;12) h+=12; if (km[1]==='오전'&amp;&amp;h===12) h=0;
+      krTimes.push(pad(h)+':'+pad(m)); }
+    if (krTimes.length&gt;=1) {
+      startTime=krTimes[0]; endTime=krTimes[1]||addMinutes(krTimes[0],CONFIG.DEFAULT_DURATION_MIN);
+    } else {
+      var timeMatches=text.match(/([0-2]?\d):([0-5]\d)/g)||[];
+      var times=timeMatches.map(function(t){var p=t.split(':');return pad(p[0])+':'+p[1];});
+      times=times.filter(function(v,i,a){return a.indexOf(v)===i;}); times.sort();
+      if (times.length===0) return null;
+      startTime=times[0]; endTime=times[1]||addMinutes(times[0],CONFIG.DEFAULT_DURATION_MIN);
+    }
+  }
+
+  var loc = '';
+  var locMatch = text.match(/(?:장소|회의실|회의장소|위치|Location|Room)\s*[:：]\s*(.+)/i);
+  if (locMatch) loc = locMatch[1].replace(/\*/g, '').trim();
+  var titleMatch = text.match(/회의제목\s*[:：]\s*(.+)/);
+  var title = titleMatch
+    ? titleMatch[1].replace(/\*/g,'').trim()
+    : emailData.subject.replace(/\*/g,'').trim();
+  if (!date || !startTime) return null;
+  var start = new Date(date+'T'+startTime+':00');
+  var end   = new Date(date+'T'+endTime+':00');
+  if (isNaN(start.getTime())) return null;
+  return { title:title, startDateTime:start, endDateTime:end,
+           location:loc, description:'자동등록\n발신: '+emailData.from, attendees:[] };
+}
+
+function createCalendarEvent(info) {
+  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
+    || CalendarApp.getDefaultCalendar();
+  cal.createEvent(info.title, info.startDateTime, info.endDateTime, {
+    location: info.location, description: info.description,
+    guests: info.attendees.join(','), sendInvites: false });
+}
+
+function pad(n) { return ('0'+n).slice(-2); }
+function addMinutes(t, m) {
+  var p2=t.split(':'), tot=parseInt(p2[0])*60+parseInt(p2[1])+m;
+  return pad(Math.floor(tot/60))+':'+pad(tot%60); }</code></pre>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body"><strong>저장</strong><span>두 파일 모두 Ctrl+S 로 저장</span></div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body"><strong>테스트 실행</strong><span>회의 등록 → 취소 순서로 테스트</span></div>
+</div>
+
+<h4>① 회의 등록 테스트</h4>
+<p>Gmail에서 본인 계정으로 아래 형식의 메일을 전송합니다.</p>
+<pre><code>제목: [회의소집] 테스트 회의 / 2026.03.25 14:00 ~ 15:00
+
+* 회의제목 : 테스트 회의
+* 회의일시 : 2026.03.25 14:00 ~ 15:00
+* 회의장소 : 상암 12F 발렌시아</code></pre>
+<ol>
+  <li>Apps Script에서 드롭다운 → <code>processMeetingEmails</code> 선택 → ▶ Run</li>
+  <li>Execution log에서 <code>등록완료: 테스트 회의</code> 확인</li>
+  <li>Google Calendar에서 14:00~15:00 일정 확인 ✅</li>
+</ol>
+
+<h4>② 회의 취소 테스트</h4>
+<p>등록 확인 후 아래 형식의 취소 메일을 전송합니다.</p>
+<pre><code>제목: [회의취소] 테스트 회의 / 2026.03.25 14:00 ~ 15:00
+
+* 회의제목 : 테스트 회의
+* 회의일시 : 2026.03.25 14:00 ~ 15:00
+* 회의장소 : 상암 12F 발렌시아</code></pre>
+<ol>
+  <li>Apps Script에서 <code>processMeetingEmails</code> → ▶ Run</li>
+  <li>Execution log에서 <code>캘린더 일정 삭제: 테스트 회의</code> 확인</li>
+  <li>Google Calendar에서 해당 일정이 삭제됐는지 확인 ✅</li>
+</ol>
+
+<div class="callout warn">
+  <span class="callout-icon">⚠️</span>
+  <span>최초 실행 시 권한 허용 팝업이 뜹니다. Review permissions → 본인 계정 선택 → Advanced → Go to (unsafe) → Allow 클릭</span>
+</div>
+
+<p><strong>Execution log 정상 메시지:</strong></p>
+<pre><code><div class="log-line"><span class="cmd">완료 - 등록:0 건너뜀:0</span>  <span class="comment">← 처리할 메일 없을 때 정상</span></div>
+<div class="log-line"><span class="cmd">완료 - 등록:1 건너뜀:0</span>  <span class="comment">← 회의 메일 1건 등록 성공</span></div>
+<div class="log-line"><span class="cmd">캘린더 일정 삭제: 테스트 회의</span>  <span class="comment">← 취소 메일 처리 성공</span></div></code></pre>
+
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body"><strong>자동 트리거 설정</strong><span>15분마다 자동 실행 등록</span></div>
+</div>
+<p><strong>방법 A — 코드로 설정 (권장)</strong><br>상단 드롭다운에서 <code>setupTrigger</code> 선택 → ▶ Run</p>
+<p><strong>방법 B — UI에서 직접 설정</strong></p>
+<table>
+  <tr><th>항목</th><th>선택값</th></tr>
+  <tr><td>Choose which function to run</td><td><code>processMeetingEmails</code></td></tr>
+  <tr><td>Choose which deployment</td><td><code>Head</code></td></tr>
+  <tr><td>Select event source</td><td><code>Time-driven</code></td></tr>
+  <tr><td>Select type of time</td><td><code>Minutes timer</code></td></tr>
+  <tr><td>Select minute interval</td><td><code>Every 15 minutes</code></td></tr>
+</table>
+<div class="callout ok">
+  <span class="callout-icon">✅</span>
+  <span>Save 클릭 후 Triggers 목록에 <code>processMeetingEmails / time-based</code> 항목이 보이면 완료!</span>
+</div>
+
+<h2>인식 가능한 이메일 형식</h2>
+<table>
+  <tr><th>인식 키워드 (제목)</th><th>처리 방식</th></tr>
+  <tr><td>회의, 회의소집, 미팅, meeting, Meeting</td><td>캘린더 일정 <strong>등록</strong></td></tr>
+  <tr><td>회의취소, canceled, cancelled, cancel</td><td>캘린더 일정 <strong>삭제</strong></td></tr>
+</table>
+
+<h3>본문 형식 예시</h3>
+<pre><code>[회의소집] Sea Japan 내부 리뷰 / 2026.03.24 15:00 ~ 16:00 / 발렌시아
+
+* 회의제목 : Sea Japan 내부 리뷰
+* 회의일시 : 2026.03.24 15:00 ~ 16:00
+* 회의장소 : 상암 12F 발렌시아</code></pre>
+
+<h3>시간 인식 패턴</h3>
+<table>
+  <tr><th>패턴</th><th>예시</th></tr>
+  <tr><td><code>HH:MM ~ HH:MM</code> (1순위)</td><td><code>15:00 ~ 16:00</code></td></tr>
+  <tr><td>오전/오후 N시 ~ 오전/오후 N시</td><td>오후 3시~오후 4시</td></tr>
+  <tr><td>오전/오후 N시 (개별)</td><td>오후 3시, 오후 4시</td></tr>
+  <tr><td>날짜 YYYY.MM.DD</td><td>2026.03.24</td></tr>
+  <tr><td>날짜 N월 N일</td><td>3월 24일</td></tr>
+</table>
+
+<h2>버전 관리</h2>
+<h3>Apps Script 코드</h3>
+<p>각 파일 상단 주석으로 버전을 관리합니다. 수정 시 버전 번호와 변경 내용을 업데이트하세요.</p>
+<pre><code><span class="comment">// ================================================
+// v4 - YYYY.MM.DD
+// 변경 내용을 여기에 기록
+// ================================================</span></code></pre>
+<h3>가이드 문서 (Google Drive)</h3>
+<ul>
+  <li>파일 우클릭 → 버전 관리 → <strong>Upload new version</strong></li>
+  <li>업로드 후 이전 버전 옆 ⋮ → <strong>Keep forever</strong> 클릭 (30일 자동 삭제 방지)</li>
+</ul>
+
+<h2>자주 묻는 질문</h2>
+<div class="faq-item">
+  <div class="faq-q">Q. 캘린더에 등록이 안 돼요.</div>
+  <ol>
+    <li>이메일 제목에 <code>회의</code> / <code>미팅</code> / <code>meeting</code> 키워드가 있는지 확인</li>
+    <li>이메일이 읽음 처리 되어 있지 않은지 확인 (<code>is:unread</code> 조건)</li>
+    <li>날짜 형식이 <code>YYYY.MM.DD</code> 또는 <code>YYYY-MM-DD</code> 형식인지 확인</li>
+    <li>Execution log에서 오류 메시지 확인</li>
+  </ol>
+</div>
+<div class="faq-item">
+  <div class="faq-q">Q. 회의 취소 메일인데 일정이 삭제 안 돼요.</div>
+  <ol>
+    <li>제목에 <code>취소</code>, <code>canceled</code>, <code>cancelled</code>, <code>cancel</code> 키워드가 있는지 확인</li>
+    <li>취소 메일의 회의 제목이 등록 시 제목과 정확히 일치하는지 확인</li>
+    <li>캘린더에 해당 일정이 실제로 존재하는지 확인</li>
+  </ol>
+</div>
+<div class="faq-item">
+  <div class="faq-q">Q. 같은 메일이 중복 등록되나요?</div>
+  <p>처리된 메일에는 <code>캘린더등록완료</code> 라벨이 붙어 중복 처리를 방지합니다.</p>
+</div>
+<div class="faq-item">
+  <div class="faq-q">Q. 메일 삭제해도 되나요?</div>
+  <p>네, 캘린더 이벤트는 독립적으로 저장되므로 원본 메일을 삭제해도 캘린더 일정에는 영향이 없습니다.</p>
+</div>
+<div class="faq-item">
+  <div class="faq-q">Q. 15분보다 빠르게 감지할 수 있나요?</div>
+  <p>Apps Script 무료 계정 기준 최소 단위가 1분이에요. <code>everyMinutes(15)</code> → <code>everyMinutes(1)</code>로 변경하면 됩니다. 단, 실행 횟수 제한(하루 90분)이 있으니 참고하세요.</p>
+</div>
+<div class="faq-item">
+  <div class="faq-q">Q. 파싱 정확도를 더 높이고 싶어요.</div>
+  <p>Gemini API 키를 발급받아 <code>GEMINI_API_KEY</code>에 입력하면 AI가 자연어로 된 이메일도 정확하게 파싱합니다. <a href="https://aistudio.google.com">Google AI Studio</a>에서 무료로 발급받을 수 있습니다.</p>
+</div>
+
+</body>
+</html>
