@@ -211,9 +211,9 @@
   <div class="subtitle">Google Apps Script 설치 가이드</div>
   <div>
     <span class="badge">v3</span>
-    <span class="badge">2026.03.23</span>
-    <span class="badge">버그 수정</span>
-    <span class="badge">회의 취소 자동 삭제</span>
+    <span class="badge">2026.03.26</span>
+    <span class="badge">처리 기준 변경</span>
+    <span class="badge">-label:캘린더등록완료</span>
   </div>
 </div>
 
@@ -253,13 +253,12 @@
 </div>
 <p>① 에디터에서 <code>Ctrl+A</code> → <code>Delete</code> 로 삭제 &nbsp; ② 아래 코드 복사 후 <code>Ctrl+V</code></p>
 <pre><code><span class="comment">// ================================================
-// v3 - 2026.03.23
-// 버그 수정: 시간 범위 파싱 오류 (15:00~16:00)
-// 신규: 회의 취소 메일 감지 시 캘린더 일정 자동 삭제
+// v3 - 2026.03.26
+// 변경: is:unread → -label:캘린더등록완료 조건으로 처리 기준 변경
 // ================================================</span>
 
 const CONFIG = {
-  SEARCH_QUERY: 'subject:(회의 OR 회의소집 OR 회의취소 OR 미팅 OR meeting OR Meeting) is:unread',
+  SEARCH_QUERY: 'subject:(회의 OR 회의소집 OR 회의변경) -label:캘린더등록완료',
   PROCESSED_LABEL: '캘린더등록완료',
   LOOK_BACK_HOURS: 24,
   CALENDAR_ID: 'primary',
@@ -278,13 +277,6 @@ function processMeetingEmails() {
     var msg = thread.getMessages()[0];
     if (msg.getDate() &lt; cutoff) continue;
 
-    var labels = thread.getLabels();
-    var alreadyDone = false;
-    for (var j = 0; j &lt; labels.length; j++) {
-      if (labels[j].getName() === CONFIG.PROCESSED_LABEL) { alreadyDone = true; break; }
-    }
-    if (alreadyDone) { skipped++; continue; }
-
     var emailData = {
       subject: msg.getSubject(),
       body: msg.getPlainBody().substring(0, 2000),
@@ -302,34 +294,30 @@ function processMeetingEmails() {
 
     console.log('처리 중: ' + emailData.subject);
     var info = parseWithRegex(emailData);
+
     if (info) {
       createCalendarEvent(info);
       thread.addLabel(label);
       created++;
       console.log('등록완료: ' + info.title);
-    } else { skipped++; }
-  }
-  console.log('완료 - 등록:' + created + ' 건너뜀:' + skipped);
-}
-
-function deleteCalendarEvent(info) {
-  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
-    || CalendarApp.getDefaultCalendar();
-  var searchStart = new Date(info.startDateTime.getTime() - 60*60*1000);
-  var searchEnd   = new Date(info.startDateTime.getTime() + 60*60*1000);
-  var events = cal.getEvents(searchStart, searchEnd);
-  for (var i = 0; i &lt; events.length; i++) {
-    if (events[i].getTitle() === info.title) {
-      events[i].deleteEvent();
-      console.log('캘린더 일정 삭제: ' + info.title);
+    } else {
+      console.log('파싱실패: ' + emailData.subject);
+      skipped++;
     }
   }
+
+  console.log('완료 - 등록:' + created + ' 건너뜀:' + skipped);
 }
 
 function setupTrigger() {
   var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i &lt; triggers.length; i++) { ScriptApp.deleteTrigger(triggers[i]); }
-  ScriptApp.newTrigger('processMeetingEmails').timeBased().everyMinutes(15).create();
+  for (var i = 0; i &lt; triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  }
+  ScriptApp.newTrigger('processMeetingEmails')
+    .timeBased()
+    .everyMinutes(15)
+    .create();
   console.log('트리거 설정 완료');
 }
 
@@ -337,6 +325,20 @@ function getOrCreateLabel(name) {
   var label = GmailApp.getUserLabelByName(name);
   if (!label) label = GmailApp.createLabel(name);
   return label;
+}
+
+function deleteCalendarEvent(info) {
+  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
+    || CalendarApp.getDefaultCalendar();
+  var searchStart = new Date(info.startDateTime.getTime() - 60 * 60 * 1000);
+  var searchEnd   = new Date(info.startDateTime.getTime() + 60 * 60 * 1000);
+  var events = cal.getEvents(searchStart, searchEnd);
+  for (var i = 0; i &lt; events.length; i++) {
+    if (events[i].getTitle() === info.title) {
+      events[i].deleteEvent();
+      console.log('캘린더 일정 삭제: ' + info.title);
+    }
+  }
 }</code></pre>
 
 <div class="step">
@@ -460,9 +462,10 @@ function addMinutes(t, m) {
 </div>
 
 <p><strong>Execution log 정상 메시지:</strong></p>
-<pre><code><div class="log-line"><span class="cmd">완료 - 등록:0 건너뜀:0</span>  <span class="comment">← 처리할 메일 없을 때 정상</span></div>
-<div class="log-line"><span class="cmd">완료 - 등록:1 건너뜀:0</span>  <span class="comment">← 회의 메일 1건 등록 성공</span></div>
-<div class="log-line"><span class="cmd">캘린더 일정 삭제: 테스트 회의</span>  <span class="comment">← 취소 메일 처리 성공</span></div></code></pre>
+<pre><code><div class="log-line"><span class="cmd">완료 - 등록:0 건너뜀:0</span>         <span class="comment">← 처리할 메일 없을 때 정상</span></div>
+<div class="log-line"><span class="cmd">완료 - 등록:1 건너뜀:0</span>         <span class="comment">← 회의 메일 1건 등록 성공</span></div>
+<div class="log-line"><span class="cmd">캘린더 일정 삭제: 테스트 회의</span>  <span class="comment">← 취소 메일 처리 성공</span></div>
+<div class="log-line"><span class="cmd">파싱실패: [제목]</span>               <span class="comment">← 날짜/시간을 찾지 못한 경우</span></div></code></pre>
 
 <div class="step">
   <div class="step-num">6</div>
@@ -486,8 +489,8 @@ function addMinutes(t, m) {
 <h2>인식 가능한 이메일 형식</h2>
 <table>
   <tr><th>인식 키워드 (제목)</th><th>처리 방식</th></tr>
-  <tr><td>회의, 회의소집, 미팅, meeting, Meeting</td><td>캘린더 일정 <strong>등록</strong></td></tr>
-  <tr><td>회의취소, canceled, cancelled, cancel</td><td>캘린더 일정 <strong>삭제</strong></td></tr>
+  <tr><td>회의, 회의소집, 회의변경</td><td>캘린더 일정 <strong>등록</strong></td></tr>
+  <tr><td>취소, canceled, cancelled, cancel</td><td>캘린더 일정 <strong>삭제</strong></td></tr>
 </table>
 
 <h3>본문 형식 예시</h3>
@@ -524,10 +527,10 @@ function addMinutes(t, m) {
 <div class="faq-item">
   <div class="faq-q">Q. 캘린더에 등록이 안 돼요.</div>
   <ol>
-    <li>이메일 제목에 <code>회의</code> / <code>미팅</code> / <code>meeting</code> 키워드가 있는지 확인</li>
-    <li>이메일이 읽음 처리 되어 있지 않은지 확인 (<code>is:unread</code> 조건)</li>
+    <li>이메일 제목에 <code>회의</code> / <code>회의소집</code> / <code>회의변경</code> 키워드가 있는지 확인</li>
+    <li>이미 <code>캘린더등록완료</code> 라벨이 붙어 있지 않은지 확인 (<code>-label:캘린더등록완료</code> 조건)</li>
     <li>날짜 형식이 <code>YYYY.MM.DD</code> 또는 <code>YYYY-MM-DD</code> 형식인지 확인</li>
-    <li>Execution log에서 오류 메시지 확인</li>
+    <li>Execution log에서 <code>파싱실패:</code> 메시지가 있으면 본문 형식 확인</li>
   </ol>
 </div>
 <div class="faq-item">

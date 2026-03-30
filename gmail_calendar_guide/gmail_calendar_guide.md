@@ -2,13 +2,13 @@
 title: Gmail × Google Calendar 가이드
 status: ✅ 배포됨
 url: https://zippy-douhua-88087b.netlify.app/
-updated: 2026-03-23
+updated: 2026-03-30
 note:
 ---
 # 📧 Gmail 회의 메일 → Google Calendar 자동 등록
 
-**Google Apps Script 설치 가이드**  
-`v3` · `2026.03.23` · 버그 수정 + 회의 취소 자동 삭제 기능 추가
+**Google Apps Script 설치 가이드**
+`v3` · `2026.03.26` · 처리 기준 변경: is:unread → -label:캘린더등록완료
 
 | 소요 시간 | 필요 조건 | 비용 |
 |-----------|-----------|------|
@@ -39,13 +39,12 @@ note:
 
 ```javascript
 // ================================================
-// v3 - 2026.03.23
-// 버그 수정: 시간 범위 파싱 오류 (15:00~16:00)
-// 신규: 회의 취소 메일 감지 시 캘린더 일정 자동 삭제
+// v3 - 2026.03.26
+// 변경: is:unread → -label:캘린더등록완료 조건으로 처리 기준 변경
 // ================================================
 
 const CONFIG = {
-  SEARCH_QUERY: 'subject:(회의 OR 회의소집 OR 회의취소 OR 미팅 OR meeting OR Meeting) is:unread',
+  SEARCH_QUERY: 'subject:(회의 OR 회의소집 OR 회의변경) -label:캘린더등록완료',
   PROCESSED_LABEL: '캘린더등록완료',
   LOOK_BACK_HOURS: 24,
   CALENDAR_ID: 'primary',
@@ -64,13 +63,6 @@ function processMeetingEmails() {
     var msg = thread.getMessages()[0];
     if (msg.getDate() < cutoff) continue;
 
-    var labels = thread.getLabels();
-    var alreadyDone = false;
-    for (var j = 0; j < labels.length; j++) {
-      if (labels[j].getName() === CONFIG.PROCESSED_LABEL) { alreadyDone = true; break; }
-    }
-    if (alreadyDone) { skipped++; continue; }
-
     var emailData = {
       subject: msg.getSubject(),
       body: msg.getPlainBody().substring(0, 2000),
@@ -88,34 +80,30 @@ function processMeetingEmails() {
 
     console.log('처리 중: ' + emailData.subject);
     var info = parseWithRegex(emailData);
+
     if (info) {
       createCalendarEvent(info);
       thread.addLabel(label);
       created++;
       console.log('등록완료: ' + info.title);
-    } else { skipped++; }
-  }
-  console.log('완료 - 등록:' + created + ' 건너뜀:' + skipped);
-}
-
-function deleteCalendarEvent(info) {
-  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
-    || CalendarApp.getDefaultCalendar();
-  var searchStart = new Date(info.startDateTime.getTime() - 60*60*1000);
-  var searchEnd   = new Date(info.startDateTime.getTime() + 60*60*1000);
-  var events = cal.getEvents(searchStart, searchEnd);
-  for (var i = 0; i < events.length; i++) {
-    if (events[i].getTitle() === info.title) {
-      events[i].deleteEvent();
-      console.log('캘린더 일정 삭제: ' + info.title);
+    } else {
+      console.log('파싱실패: ' + emailData.subject);
+      skipped++;
     }
   }
+
+  console.log('완료 - 등록:' + created + ' 건너뜀:' + skipped);
 }
 
 function setupTrigger() {
   var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) { ScriptApp.deleteTrigger(triggers[i]); }
-  ScriptApp.newTrigger('processMeetingEmails').timeBased().everyMinutes(15).create();
+  for (var i = 0; i < triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  }
+  ScriptApp.newTrigger('processMeetingEmails')
+    .timeBased()
+    .everyMinutes(15)
+    .create();
   console.log('트리거 설정 완료');
 }
 
@@ -123,6 +111,20 @@ function getOrCreateLabel(name) {
   var label = GmailApp.getUserLabelByName(name);
   if (!label) label = GmailApp.createLabel(name);
   return label;
+}
+
+function deleteCalendarEvent(info) {
+  var cal = CalendarApp.getCalendarById(CONFIG.CALENDAR_ID)
+    || CalendarApp.getDefaultCalendar();
+  var searchStart = new Date(info.startDateTime.getTime() - 60 * 60 * 1000);
+  var searchEnd   = new Date(info.startDateTime.getTime() + 60 * 60 * 1000);
+  var events = cal.getEvents(searchStart, searchEnd);
+  for (var i = 0; i < events.length; i++) {
+    if (events[i].getTitle() === info.title) {
+      events[i].deleteEvent();
+      console.log('캘린더 일정 삭제: ' + info.title);
+    }
+  }
 }
 ```
 
@@ -254,9 +256,10 @@ Gmail에서 본인 계정으로 아래 형식의 메일을 전송합니다.
 **Execution log 정상 메시지**
 
 ```
-완료 - 등록:0 건너뜀:0  ← 처리할 메일 없을 때 정상
-완료 - 등록:1 건너뜀:0  ← 회의 메일 1건 등록 성공
-캘린더 일정 삭제: 테스트 회의  ← 취소 메일 처리 성공
+완료 - 등록:0 건너뜀:0          ← 처리할 메일 없을 때 정상
+완료 - 등록:1 건너뜀:0          ← 회의 메일 1건 등록 성공
+캘린더 일정 삭제: 테스트 회의   ← 취소 메일 처리 성공
+파싱실패: [제목]                 ← 본문에서 날짜/시간을 찾지 못한 경우
 ```
 
 ---
@@ -285,8 +288,8 @@ Gmail에서 본인 계정으로 아래 형식의 메일을 전송합니다.
 
 | 인식 키워드 (제목) | 처리 방식 |
 |-------------------|-----------|
-| 회의, 회의소집, 미팅, meeting, Meeting | 캘린더 일정 **등록** |
-| 회의취소, canceled, cancelled, cancel | 캘린더 일정 **삭제** |
+| 회의, 회의소집, 회의변경 | 캘린더 일정 **등록** |
+| 취소, canceled, cancelled, cancel | 캘린더 일정 **삭제** |
 
 ### 본문 형식 예시
 
@@ -334,10 +337,10 @@ Gmail에서 본인 계정으로 아래 형식의 메일을 전송합니다.
 
 **Q. 캘린더에 등록이 안 돼요.**
 
-1. 이메일 제목에 `회의` / `미팅` / `meeting` 키워드가 있는지 확인
-2. 이메일이 읽음 처리 되어 있지 않은지 확인 (`is:unread` 조건)
+1. 이메일 제목에 `회의` / `회의소집` / `회의변경` 키워드가 있는지 확인
+2. 이미 `캘린더등록완료` 라벨이 붙어 있지 않은지 확인 (`-label:캘린더등록완료` 조건)
 3. 날짜 형식이 `YYYY.MM.DD` 또는 `YYYY-MM-DD` 형식인지 확인
-4. Execution log에서 오류 메시지 확인
+4. Execution log에서 `파싱실패:` 메시지가 있으면 본문 형식 확인
 
 **Q. 회의 취소 메일인데 일정이 삭제 안 돼요.**
 
