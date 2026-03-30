@@ -1,1093 +1,249 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>개인 Think Tank 세팅 가이드</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-:root {
-  --bg: #faf9f7;
-  --surface: #ffffff;
-  --ink: #1a1a18;
-  --ink2: #444440;
-  --muted: #999990;
-  --border: #e8e6e0;
-  --accent: #2d6a4f;
-  --accent-light: #d8f3dc;
-  --accent2: #1d3557;
-  --warn-bg: #fff8e6;
-  --warn-border: #f0c040;
-  --code-bg: #f4f3f0;
-  --done-bg: #d8f3dc;
-  --done-border: #2d6a4f;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-weight: 300;
-  line-height: 1.85;
-  font-size: 15px;
-}
-
-/* ── Layout ── */
-.page {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 0 24px 100px;
-}
-
-/* ── Hero ── */
-.hero {
-  border-bottom: 2px solid var(--ink);
-  padding: 64px 0 40px;
-  margin-bottom: 56px;
-  position: relative;
-}
-
-.hero-eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hero-eyebrow::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--accent);
-  opacity: 0.3;
-}
-
-h1 {
-  font-family: 'Noto Serif KR', serif;
-  font-size: clamp(28px, 5vw, 44px);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -1px;
-  margin-bottom: 16px;
-  color: var(--ink);
-}
-
-.hero-sub {
-  color: var(--ink2);
-  font-size: 15px;
-  max-width: 540px;
-}
-
-.hero-meta {
-  position: absolute;
-  top: 64px;
-  right: 0;
-  text-align: right;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.8;
-}
-
-/* ── TOC ── */
-.toc {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  margin-bottom: 64px;
-  border: 1px solid var(--border);
-}
-
-.toc-header {
-  grid-column: 1 / -1;
-  background: var(--ink);
-  color: var(--bg);
-  padding: 12px 20px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.toc-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: var(--surface);
-  text-decoration: none;
-  color: var(--ink2);
-  font-size: 13px;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
-}
-
-.toc-item:hover { background: var(--accent-light); color: var(--accent); }
-
-.toc-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--muted);
-  flex-shrink: 0;
-  width: 20px;
-}
-
-.toc-done { color: var(--accent); font-size: 12px; }
-
-/* ── Concept box ── */
-.concept {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
-  align-items: center;
-  gap: 0;
-  margin-bottom: 48px;
-  border: 1px solid var(--border);
-}
-
-.concept-box {
-  padding: 24px 20px;
-  text-align: center;
-  background: var(--surface);
-}
-
-.concept-box .label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.concept-box .title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-
-.concept-box .desc {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.concept-box.highlight {
-  background: var(--accent);
-  color: white;
-}
-
-.concept-box.highlight .label,
-.concept-box.highlight .title,
-.concept-box.highlight .desc { color: rgba(255,255,255,0.85); }
-
-.concept-box.highlight .title { color: white; }
-
-.concept-arrow {
-  padding: 0 8px;
-  color: var(--muted);
-  font-size: 18px;
-  background: var(--bg);
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-}
-
-/* ── Step ── */
-.step {
-  margin-bottom: 72px;
-  animation: fadeUp 0.4s ease both;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.step-label {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.step-badge {
-  width: 40px;
-  height: 40px;
-  background: var(--ink);
-  color: var(--bg);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.step-badge.done {
-  background: var(--done-bg);
-  color: var(--accent);
-  font-size: 18px;
-}
-
-.step-info { flex: 1; }
-
-.step-title {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.3px;
-}
-
-.step-sub {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.step-status {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  padding: 4px 10px;
-  background: var(--done-bg);
-  color: var(--accent);
-  border: 1px solid var(--done-border);
-}
-
-.step-content { padding-left: 56px; }
-
-p {
-  color: var(--ink2);
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-/* ── Code ── */
-.code-wrap {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  margin: 20px 0;
-  border-radius: 2px;
-}
-
-.code-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  background: #eeece8;
-}
-
-.code-lang {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.copy-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--accent2);
-  background: none;
-  border: 1px solid var(--accent2);
-  padding: 3px 10px;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all 0.15s;
-}
-
-.copy-btn:hover { background: var(--accent2); color: white; }
-.copy-btn.copied { background: var(--accent); border-color: var(--accent); color: white; }
-
-pre {
-  padding: 20px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  line-height: 1.75;
-  overflow-x: auto;
-  color: var(--ink);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.c { color: #999; }
-.g { color: var(--accent); font-weight: 500; }
-.b { color: var(--accent2); }
-.o { color: #c87533; }
-
-/* ── Notes ── */
-.note {
-  display: flex;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 2px;
-  margin: 16px 0;
-  font-size: 13px;
-}
-
-.note.tip {
-  background: #f0f7ff;
-  border: 1px solid #c0d8f0;
-  color: #1a3a5c;
-}
-
-.note.warn {
-  background: var(--warn-bg);
-  border: 1px solid var(--warn-border);
-  color: #5a4000;
-}
-
-.note.done {
-  background: var(--done-bg);
-  border: 1px solid var(--done-border);
-  color: #1a4a2e;
-}
-
-.note-icon { flex-shrink: 0; font-size: 16px; line-height: 1.5; }
-
-/* ── Table ── */
-.tbl-wrap { overflow-x: auto; margin: 20px 0; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-thead tr {
-  background: var(--ink);
-  color: var(--bg);
-}
-
-th {
-  padding: 10px 16px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  color: var(--ink2);
-  vertical-align: top;
-}
-
-td:first-child {
-  font-weight: 500;
-  color: var(--ink);
-}
-
-tr:last-child td { border-bottom: none; }
-tr:nth-child(even) td { background: #faf9f7; }
-
-/* ── Steps list ── */
-.steps-list {
-  counter-reset: step-counter;
-  list-style: none;
-  margin: 20px 0;
-}
-
-.steps-list li {
-  counter-increment: step-counter;
-  display: flex;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--ink2);
-  align-items: flex-start;
-}
-
-.steps-list li:last-child { border-bottom: none; }
-
-.steps-list li::before {
-  content: counter(step-counter);
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  background: var(--ink);
-  color: var(--bg);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1px;
-}
-
-/* ── FAQ ── */
-.faq { margin: 20px 0; }
-
-.faq-item {
-  border-bottom: 1px solid var(--border);
-  padding: 20px 0;
-}
-
-.faq-item:last-child { border-bottom: none; }
-
-.faq-q {
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--ink);
-  margin-bottom: 8px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.faq-q::before {
-  content: 'Q.';
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--accent);
-  padding-top: 2px;
-  flex-shrink: 0;
-}
-
-.faq-a {
-  font-size: 13px;
-  color: var(--ink2);
-  padding-left: 22px;
-}
-
-/* ── Section heading ── */
-h2 {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 20px;
-  letter-spacing: -0.3px;
-}
-
-h3 {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--ink);
-  margin: 24px 0 12px;
-}
-
-/* ── Divider ── */
-.div { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
-
-/* ── Flow diagram ── */
-.flow {
-  display: flex;
-  align-items: stretch;
-  margin: 24px 0;
-  border: 1px solid var(--border);
-  overflow-x: auto;
-}
-
-.flow-step {
-  flex: 1;
-  min-width: 100px;
-  padding: 18px 16px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  text-align: center;
-}
-
-.flow-step:last-child { border-right: none; }
-
-.flow-step.accent { background: var(--ink); }
-.flow-step.accent .fs-title { color: white; }
-.flow-step.accent .fs-desc { color: rgba(255,255,255,0.55); }
-
-.fs-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--muted);
-  margin-bottom: 6px;
-  letter-spacing: 1px;
-}
-
-.fs-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-
-.fs-desc {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-/* ── Footer ── */
-.footer {
-  border-top: 2px solid var(--ink);
-  padding: 40px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.footer-left .title {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.footer-left .sub {
-  font-size: 12px;
-  color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.footer-right {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--muted);
-  text-align: right;
-  line-height: 1.8;
-}
-
-/* Mobile */
-@media (max-width: 600px) {
-  .concept { grid-template-columns: 1fr; }
-  .concept-arrow { display: none; }
-  .toc { grid-template-columns: 1fr; }
-  .hero-meta { display: none; }
-  .step-content { padding-left: 0; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eunnwk · Docs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --accent2: #47c9ff;
+      --text: #e0e0e0;
+      --text-muted: #666;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 64px 40px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 40px;
+      width: 60px; height: 2px;
+      background: var(--accent);
+    }
+
+    .site-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 40px 80px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+
+    .doc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .doc-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--accent);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.2s;
+    }
+
+    .doc-card:hover {
+      border-color: #444;
+      transform: translateY(-2px);
+    }
+
+    .doc-card:hover::before {
+      transform: scaleY(1);
+    }
+
+    .doc-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--accent2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .doc-title {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: #eee;
+    }
+
+    .doc-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .doc-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #444;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    /* Empty card placeholder */
+    .doc-card.placeholder {
+      border-style: dashed;
+      border-color: #222;
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .placeholder .doc-title { color: #555; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      header, main, footer { padding-left: 20px; padding-right: 20px; }
+      header { padding-top: 40px; }
+      .doc-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- Hero -->
-  <div class="hero">
-    <div class="hero-meta">
-      Claude Code + Obsidian<br>
-      비개발자용 가이드<br>
-      v1.0 · 2026.03
-    </div>
-    <div class="hero-eyebrow">Think Tank Setup Guide</div>
-    <h1>개인 지식 필터링<br>시스템 만들기</h1>
-    <p class="hero-sub">Claude Code와 Obsidian을 연결해 정보를 무조건 걸러서 저장하는 시스템. 코딩 지식 없이도 따라할 수 있어요.</p>
+<header>
+  <div class="site-label">eunnwk / docs</div>
+  <h1>가이드 <span>&</span><br>문서 목차</h1>
+  <p class="subtitle">Claude가 만든 가이드 문서를 모아두는 곳입니다.</p>
+</header>
+
+<main>
+
+  <div class="section-label">자동화 · 배포</div>
+  <div class="doc-grid">
+
+    <a href="deploy-guide.html" class="doc-card">
+      <div class="doc-tag">GitHub · Deploy</div>
+      <div class="doc-title">Claude → GitHub Pages 자동 배포 시스템 구축</div>
+      <div class="doc-desc">deploy.sh로 미리보기 승인 후 push까지 처리하는 반자동 배포 시스템</div>
+      <div class="doc-meta">2026-03-30 · 약 20분</div>
+    </a>
+
+    <a href="gmail_calendar_guide/index.html" class="doc-card">
+      <div class="doc-tag">Gmail · Google Calendar</div>
+      <div class="doc-title">Gmail → Google Calendar 자동 등록</div>
+      <div class="doc-desc">회의 소집 이메일을 파싱해 캘린더에 자동 등록하는 Apps Script 가이드</div>
+      <div class="doc-meta">2026-03-30</div>
+    </a>
+
   </div>
 
-  <!-- Concept -->
-  <div class="concept">
-    <div class="concept-box">
-      <div class="label">Input</div>
-      <div class="title">기사 / PDF<br>영상 / 책</div>
-      <div class="desc">아무 정보나 던진다</div>
-    </div>
-    <div class="concept-arrow">→</div>
-    <div class="concept-box highlight">
-      <div class="label">Filter Engine</div>
-      <div class="title">Claude Code</div>
-      <div class="desc">think-tank/ 폴더<br>4단계 자동 검증</div>
-    </div>
-    <div class="concept-arrow">→</div>
-    <div class="concept-box">
-      <div class="label">Knowledge Vault</div>
-      <div class="title">Obsidian</div>
-      <div class="desc">검증된 것만 저장</div>
-    </div>
+  <div class="section-label" style="margin-top: 8px;">도구 · 세팅</div>
+  <div class="doc-grid">
+
+    <a href="claude-code-obsidian/index.html" class="doc-card">
+      <div class="doc-tag">Claude Code · Obsidian</div>
+      <div class="doc-title">Claude Code + Obsidian 연동 가이드</div>
+      <div class="doc-desc">Claude Code와 Obsidian을 연결해 Think Tank 시스템을 구축하는 방법</div>
+      <div class="doc-meta">2026-03-30</div>
+    </a>
+
+    <a href="think-tank-guide/index.html" class="doc-card">
+      <div class="doc-tag">Think Tank · Obsidian</div>
+      <div class="doc-title">Think Tank 시스템 구축 가이드</div>
+      <div class="doc-desc">Claude Code + Obsidian + GitHub로 개인 지식 자동화 인프라 만들기</div>
+      <div class="doc-meta">2026-03-30</div>
+    </a>
+
+    <a href="think-tank-multidevice/index.html" class="doc-card">
+      <div class="doc-tag">Think Tank · 멀티디바이스</div>
+      <div class="doc-title">Think Tank 멀티디바이스 동기화</div>
+      <div class="doc-desc">MacBook · Windows 간 Obsidian vault를 Git으로 동기화하는 방법</div>
+      <div class="doc-meta">2026-03-30</div>
+    </a>
+
   </div>
 
-  <!-- TOC -->
-  <div class="toc">
-    <div class="toc-header">목차 — 오늘 할 것들</div>
-    <a href="#prep" class="toc-item"><span class="toc-num">00</span>준비물 설치</a>
-    <a href="#step1" class="toc-item"><span class="toc-num">01</span>think-tank 폴더 만들기</a>
-    <a href="#step2" class="toc-item"><span class="toc-num">02</span>Claude Code 실행</a>
-    <a href="#step3" class="toc-item"><span class="toc-num">03</span>핵심 파일 생성</a>
-    <a href="#step4" class="toc-item"><span class="toc-num">04</span>Obsidian 폴더 구조</a>
-    <a href="#step5" class="toc-item"><span class="toc-num">05</span>경로 연결</a>
-    <a href="#step6" class="toc-item"><span class="toc-num">06</span>첫 번째 테스트</a>
-    <a href="#daily" class="toc-item"><span class="toc-num">07</span>매일 사용 루틴</a>
-  </div>
+</main>
 
-  <!-- What is 4단계 -->
-  <div style="background: var(--surface); border: 1px solid var(--border); padding: 28px; margin-bottom: 56px;">
-    <h2 style="margin-bottom: 16px;">4단계 검증이란?</h2>
-    <p style="margin-bottom: 20px;">기사를 던지면 Claude Code가 자동으로 이 4가지를 검토해요.</p>
-    <div class="flow">
-      <div class="flow-step">
-        <div class="fs-num">① 출처</div>
-        <div class="fs-title">1차 자료인가?</div>
-        <div class="fs-desc">원본인지<br>해석본인지</div>
-      </div>
-      <div class="flow-step">
-        <div class="fs-num">② 근거</div>
-        <div class="fs-title">사실인가?</div>
-        <div class="fs-desc">데이터인지<br>의견인지</div>
-      </div>
-      <div class="flow-step">
-        <div class="fs-num">③ 반대</div>
-        <div class="fs-title">틀릴 수 있나?</div>
-        <div class="fs-desc">반대 시나리오<br>검토</div>
-      </div>
-      <div class="flow-step accent">
-        <div class="fs-num">④ 적용성</div>
-        <div class="fs-title">나한테 해당?</div>
-        <div class="fs-desc">내 목적에<br>연결되는가</div>
-      </div>
-    </div>
-  </div>
+<footer>
+  <span>eunnwk.github.io/docs</span>
+  <span>updated 2026-03-30 · 5 docs</span>
+</footer>
 
-  <hr class="div">
-
-  <!-- STEP 00 준비물 -->
-  <div class="step" id="prep">
-    <div class="step-label">
-      <div class="step-badge">00</div>
-      <div class="step-info">
-        <div class="step-title">준비물 설치</div>
-        <div class="step-sub">Claude Code와 Obsidian 설치하기</div>
-      </div>
-    </div>
-    <div class="step-content">
-
-      <h3>1. Obsidian 설치</h3>
-      <p><a href="https://obsidian.md" style="color:var(--accent)">obsidian.md</a>에서 무료 다운로드 후 설치하세요. 설치 후 볼트(Vault)를 하나 만들어두세요. 위치는 어디든 상관없어요.</p>
-
-      <h3>2. Node.js 설치</h3>
-      <p>Claude Code를 설치하려면 Node.js가 필요해요.</p>
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">확인 방법</span>
-        </div>
-        <pre><span class="c"># 터미널에서 아래 입력 — 버전 숫자가 나오면 이미 설치됨</span>
-node --version</pre>
-      </div>
-      <div class="note tip">
-        <div class="note-icon">💡</div>
-        <div>버전 숫자가 안 나오면 <strong>nodejs.org</strong>에서 설치하세요. LTS 버전 선택.</div>
-      </div>
-
-      <h3>3. Claude Code 설치</h3>
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">터미널</span>
-          <button class="copy-btn" onclick="copyCode(this)">복사</button>
-        </div>
-        <pre>npm install -g @anthropic-ai/claude-code</pre>
-      </div>
-      <div class="note tip">
-        <div class="note-icon">💡</div>
-        <div><strong>터미널이 뭔가요?</strong> 맥에서 <code>Command + Space</code> → "터미널" 검색 → 실행. 검은 화면에 명령어를 입력하는 곳이에요.</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 01 -->
-  <div class="step" id="step1">
-    <div class="step-label">
-      <div class="step-badge">01</div>
-      <div class="step-info">
-        <div class="step-title">think-tank 폴더 만들기</div>
-        <div class="step-sub">Claude Code의 작업 공간 생성</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>터미널을 열고 아래 명령어를 <strong>한 줄씩</strong> 입력하세요.</p>
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">터미널 — 한 줄씩 입력</span>
-          <button class="copy-btn" onclick="copyCode(this)">복사</button>
-        </div>
-        <pre><span class="c"># 1. 홈 폴더에 think-tank 폴더 생성</span>
-mkdir ~/think-tank
-
-<span class="c"># 2. 그 폴더로 이동</span>
-cd ~/think-tank
-
-<span class="c"># 3. Claude Code 실행</span>
-claude</pre>
-      </div>
-      <div class="note tip">
-        <div class="note-icon">💡</div>
-        <div><strong>~/think-tank 가 뭔가요?</strong><br>
-        <code>~</code>는 내 컴퓨터의 홈 폴더를 뜻해요.<br>
-        즉 <code>/Users/내이름/think-tank</code>와 같아요.</div>
-      </div>
-      <div class="note warn">
-        <div class="note-icon">⚠️</div>
-        <div>Obsidian 볼트 안에 만들 필요 없어요. 완전히 별개의 폴더예요. <br>
-        think-tank = 필터 엔진 &nbsp;/&nbsp; Obsidian = 저장소</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 02 -->
-  <div class="step" id="step2">
-    <div class="step-label">
-      <div class="step-badge">02</div>
-      <div class="step-info">
-        <div class="step-title">Claude Code 신뢰 설정</div>
-        <div class="step-sub">처음 실행 시 1회만 필요</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>Claude Code가 처음 실행되면 아래 화면이 나와요.</p>
-      <div class="code-wrap">
-        <div class="code-top"><span class="code-lang">화면 출력</span></div>
-        <pre>Quick safety check: Is this a project you created or one you trust?
-
-<span class="g">❯ 1. Yes, I trust this folder</span>
-  2. No, exit</pre>
-      </div>
-      <p><strong><code>1</code> 입력 후 Enter</strong>를 누르세요. 이후엔 이 화면이 다시 나오지 않아요.</p>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 03 -->
-  <div class="step" id="step3">
-    <div class="step-label">
-      <div class="step-badge">03</div>
-      <div class="step-info">
-        <div class="step-title">핵심 파일 생성</div>
-        <div class="step-sub">Claude Code에게 "나는 이런 사람이야"를 알려주는 파일들</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>Claude Code 입력창에 아래 내용을 <strong>전체 복사해서 붙여넣기</strong>하세요.<br>
-      <strong style="color:var(--accent)">[ ] 안의 내용만 본인 정보로 수정</strong>하면 돼요.</p>
-
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">Claude Code에 붙여넣기</span>
-          <button class="copy-btn" onclick="copyCode(this)">복사</button>
-        </div>
-        <pre>아래 구조로 파일들을 만들어줘.
-
-1. CLAUDE.md 파일:
----
-# About Me
-<span class="o">[본인 소개 — 예: 나는 UX 디자이너이며 Make.com 자동화를 공부하고 있다]</span>
-비개발자이며, 노코드 자동화(Make.com)를 중심으로 공부하고 있다.
-
-# 지식을 쌓는 목적 (우선순위 순)
-1. <span class="o">[목적 1]</span>
-2. <span class="o">[목적 2]</span>
-3. <span class="o">[목적 3]</span>
-
-# 행동 규칙
-- 정보를 받으면 반드시 4단계 검증을 거친다
-- 검증 없이 수용 금지
-- 인사이트는 항상 내 목적 중 어디에 쓰이는가로 연결할 것
-- 저장 경로는 Obsidian 볼트 기준으로 안내할 것
-
-# Obsidian 볼트 경로
-<span class="o">[본인 Obsidian 볼트 경로 — 예: /Users/username/Documents/Obsidian Vault]</span>
----
-
-2. CONTEXT.md 파일:
----
-# 현재 진행 중인 것들
-- Think Tank 시스템 구축 중
-- <span class="o">[현재 공부 중인 것들 추가]</span>
----
-
-3. memory/ 폴더 생성
-4. inbox/ 폴더 생성
-5. sessions/ 폴더 생성
-
-6. .claude/commands/intake/index.md 파일:
----
-description: "기사, 글, 텍스트를 붙여넣을 때 자동 실행"
----
-
-# 지식 인테이크 검증 프로토콜
-
-사용자가 기사, 글, 텍스트를 붙여넣으면 아래 4단계를 자동 실행한다.
-
-## 4단계 검증
-① 출처 — 1차 자료인가, 누군가의 해석인가?
-② 근거 — 데이터/사실인가, 의견/추측인가?
-③ 반대 시나리오 — 이게 틀릴 수 있는 조건은?
-④ 적용성 — 내 목적 중 어디에 쓰이는가?
-
-## 저장 안내
-검증 후 Obsidian의 어느 폴더에 저장할지 추천한다.
----</pre>
-      </div>
-
-      <p>완료되면 아래처럼 체크 표시가 나와요:</p>
-      <div class="code-wrap">
-        <div class="code-top"><span class="code-lang">완료 화면</span></div>
-        <pre>think-tank/
-├── CLAUDE.md          <span class="g">✅</span>
-├── CONTEXT.md         <span class="g">✅</span>
-├── memory/            <span class="g">✅</span>
-├── inbox/             <span class="g">✅</span>
-├── sessions/          <span class="g">✅</span>
-└── .claude/
-    └── commands/
-        └── intake/
-            └── index.md  <span class="g">✅</span></pre>
-      </div>
-
-      <div class="note tip">
-        <div class="note-icon">💡</div>
-        <div>
-          <strong>각 파일의 역할:</strong><br>
-          <code>CLAUDE.md</code> — 매 대화 시작 시 자동으로 읽힘. 내가 누구인지 기억<br>
-          <code>CONTEXT.md</code> — 지금 뭘 하고 있는지 맥락 유지<br>
-          <code>memory/</code> — 대화가 길어져도 사라지지 않는 장기 기억<br>
-          <code>inbox/</code> — PDF 파일을 여기 넣으면 자동 분석<br>
-          <code>.claude/commands/intake/index.md</code> — 기사 붙여넣기 시 자동 검증 실행
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 04 -->
-  <div class="step" id="step4">
-    <div class="step-label">
-      <div class="step-badge">04</div>
-      <div class="step-info">
-        <div class="step-title">Obsidian 폴더 구조 만들기</div>
-        <div class="step-sub">검증된 지식이 저장될 폴더들</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>Obsidian 앱을 열고 볼트 안에 아래 폴더들을 만드세요.<br>
-      <strong>기존 폴더가 있으면 새로 만들 필요 없어요</strong> — 비슷한 기존 폴더를 활용하면 돼요.</p>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>목적</th><th>추천 폴더 이름</th><th>저장할 내용</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>📥 임시 투하</td><td>Inbox/</td><td>처음엔 다 여기에, 나중에 분류</td></tr>
-            <tr><td>🤖 자동화 공부</td><td>References/AI-automation/</td><td>Make.com, AI 관련 인사이트</td></tr>
-            <tr><td>💼 업무/UX</td><td>References/UX/</td><td>팀 운영, 디자인 관련</td></tr>
-            <tr><td>💰 수익 아이디어</td><td>Ideas/Business/</td><td>자동화 수익 아이디어</td></tr>
-            <tr><td>🎨 개인 브랜드</td><td>Ideas/Brand/</td><td>캐릭터, 콘텐츠 관련</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="note warn">
-        <div class="note-icon">⚠️</div>
-        <div>폴더 이름은 완전히 자유예요. 위 이름이 싫으면 본인이 쓰던 이름으로 만들어도 돼요. 다음 단계에서 경로를 알려주면 그걸 기준으로 작동해요.</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 05 -->
-  <div class="step" id="step5">
-    <div class="step-label">
-      <div class="step-badge">05</div>
-      <div class="step-info">
-        <div class="step-title">Obsidian 경로 연결하기</div>
-        <div class="step-sub">CLAUDE.md에 저장 위치 등록</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>Claude Code에 아래를 입력하세요. <strong>폴더 이름은 Step 04에서 만든 것으로</strong> 수정해요.</p>
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">Claude Code에 입력</span>
-          <button class="copy-btn" onclick="copyCode(this)">복사</button>
-        </div>
-        <pre>CLAUDE.md의 Obsidian 저장 경로를 아래로 업데이트해줘:
-
-- 📥 임시 투하 → Inbox/
-- 🤖 자동화 공부 → References/AI-automation/
-- 💼 업무/UX → References/UX/
-- 💰 수익 아이디어 → Ideas/Business/
-- 🎨 브랜드 → Ideas/Brand/</pre>
-      </div>
-      <p>그 다음 Claude Code가 <em>".claude/commands/intake/index.md도 동일하게 맞춰줄까요?"</em> 라고 물으면 <strong><code>yes</code></strong> 입력하세요.</p>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- STEP 06 -->
-  <div class="step" id="step6">
-    <div class="step-label">
-      <div class="step-badge">06</div>
-      <div class="step-info">
-        <div class="step-title">첫 번째 테스트</div>
-        <div class="step-sub">기사 하나 던져보기</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <p>세팅이 끝났어요. 실제로 작동하는지 확인해볼게요.</p>
-
-      <ol class="steps-list">
-        <li>인터넷에서 관심 있는 기사를 찾는다 (자동화, UX, 무엇이든)</li>
-        <li>기사 텍스트를 전체 선택해서 복사한다</li>
-        <li>Claude Code 입력창에 <strong>그냥 붙여넣기</strong>한다</li>
-        <li>자동으로 4단계 검증이 실행되는 걸 본다</li>
-        <li><em>"References/AI-automation/ 에 저장하세요"</em> 같은 안내를 확인한다</li>
-        <li>Obsidian을 열어서 해당 폴더에 노트를 만들고 내용을 저장한다</li>
-      </ol>
-
-      <div class="note warn">
-        <div class="note-icon">⚠️</div>
-        <div>자동 검증이 실행 안 된다면 Claude Code에 <code>/intake</code> 를 먼저 입력한 뒤 기사를 붙여넣어 보세요.</div>
-      </div>
-
-      <div class="note done">
-        <div class="note-icon">✅</div>
-        <div>검증 후 저장 경로 안내가 나오면 시스템이 정상 작동하는 거예요!</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- Daily -->
-  <div class="step" id="daily">
-    <div class="step-label">
-      <div class="step-badge" style="font-size:18px;">📅</div>
-      <div class="step-info">
-        <div class="step-title">매일 사용 루틴</div>
-        <div class="step-sub">이 흐름으로 반복하면 돼요</div>
-      </div>
-    </div>
-    <div class="step-content">
-      <div class="code-wrap">
-        <div class="code-top"><span class="code-lang">매일 루틴</span></div>
-        <pre><span class="g">매일 / 기사 발견할 때</span>
-  터미널 열기
-  cd ~/think-tank
-  claude
-  → 기사 붙여넣기
-  → 검증 결과 확인
-  → Obsidian 해당 폴더에 저장
-
-<span class="g">주 1회</span>
-  Obsidian에서 저장된 인사이트 훑어보기
-  → 연결되는 것들 찾기
-  → 블로그 글감 / UX Talk 소재로 활용</pre>
-      </div>
-
-      <h3>5가지 입력 경로</h3>
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>정보 유형</th><th>방법</th><th>특이사항</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>기사 / 글</td><td>Claude Code에 그냥 복붙</td><td>자동 4단계 검증</td></tr>
-            <tr><td>PDF 리포트</td><td>inbox/ 폴더에 넣기 → "이거 읽어줘"</td><td>원본 직접 분석</td></tr>
-            <tr><td>유튜브 영상</td><td>NotebookLM 요약 → Claude Code 복붙</td><td>[2차요약] 태그 붙이기</td></tr>
-            <tr><td>책</td><td>독후감/핵심 내용 복붙</td><td>프레임워크 자동 추출</td></tr>
-            <tr><td>웹 리서치</td><td>"○○에 대해 알려줘" 질문</td><td>저장은 내가 직접 결정</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>여러 기사 한 번에 처리하기</h3>
-      <div class="code-wrap">
-        <div class="code-top">
-          <span class="code-lang">Claude Code에 입력</span>
-          <button class="copy-btn" onclick="copyCode(this)">복사</button>
-        </div>
-        <pre>아래 기사들을 순서대로 각각 4단계 검증해줘.
-저장 경로도 각각 추천해줘.
-
-[기사1 전체 텍스트]
----
-[기사2 전체 텍스트]
----
-[기사3 전체 텍스트]</pre>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- FAQ -->
-  <h2>자주 묻는 질문</h2>
-  <div class="faq">
-    <div class="faq-item">
-      <div class="faq-q">think-tank 폴더를 Obsidian 안에 만들어야 하나요?</div>
-      <div class="faq-a">아니요. 완전히 별개예요. think-tank는 필터 엔진, Obsidian은 저장소예요. 섞이면 Claude Code 시스템 파일과 노트가 뒤섞여서 지저분해져요.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">둘이 자동으로 연결되나요?</div>
-      <div class="faq-a">지금은 수동이에요. Claude Code가 "어디에 저장하세요"라고 알려주면 내가 직접 Obsidian에 붙여넣어요. Make.com으로 자동화도 가능해요.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Claude Code를 매번 새로 실행해야 하나요?</div>
-      <div class="faq-a">네. 쓸 때마다 터미널에서 <code>cd ~/think-tank</code> → <code>claude</code> 입력하면 돼요. 이전 맥락은 CLAUDE.md와 memory/ 폴더 덕분에 유지돼요.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">CLAUDE.md는 언제 수정하면 되나요?</div>
-      <div class="faq-a">목적이 바뀌거나, 새로운 Obsidian 폴더를 추가했을 때 Claude Code에 "CLAUDE.md 업데이트해줘"라고 말하면 돼요.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">유료 플랜이 필요한가요?</div>
-      <div class="faq-a">Claude Code는 Anthropic 계정이 필요해요. claude.ai에서 계정 생성 후 Claude Code를 실행하면 로그인하라는 안내가 나와요.</div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-left">
-      <div class="title">개인 Think Tank 가이드</div>
-      <div class="sub">Claude Code + Obsidian · 비개발자용 · v1.0</div>
-    </div>
-    <div class="footer-right">
-      정보 과잉 시대에 경쟁력은<br>
-      많이 아는 게 아니라<br>
-      걸러서 내 것으로 만드는 것.
-    </div>
-  </div>
-
-</div>
-
-<script>
-function copyCode(btn) {
-  const pre = btn.closest('.code-wrap').querySelector('pre');
-  const text = pre.innerText || pre.textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = '복사됨 ✓';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = '복사';
-      btn.classList.remove('copied');
-    }, 2000);
-  });
-}
-</script>
 </body>
 </html>
