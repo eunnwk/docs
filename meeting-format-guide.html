@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 최적화 회의록 포맷 가이드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --accent2: #47c9ff;
+      --text: #e0e0e0;
+      --text-muted: #777;
+      --code-bg: #141414;
+      --success: #4dff91;
+      --warning: #ffb347;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(71,201,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .meta {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .meta span { display: flex; align-items: center; gap: 6px; }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    .intro-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      padding: 24px 28px;
+      margin-bottom: 56px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .intro-box p { font-size: 15px; color: #ccc; margin-bottom: 8px; }
+    .intro-box p:last-child { margin-bottom: 0; }
+    .intro-box strong { color: var(--accent); font-weight: 500; }
+
+    .step-section {
+      margin-bottom: 64px;
+    }
+
+    .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--accent2);
+      margin: 28px 0 12px;
+    }
+
+    p { margin-bottom: 14px; font-size: 15px; }
+
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: #1e1e1e;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #d0d0d0;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #222;
+      color: var(--accent2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    .callout.warn {
+      background: rgba(255,179,71,0.08);
+      border: 1px solid rgba(255,179,71,0.25);
+    }
+
+    .callout.success {
+      background: rgba(77,255,145,0.06);
+      border: 1px solid rgba(77,255,145,0.2);
+    }
+
+    .callout.info {
+      background: rgba(71,201,255,0.06);
+      border: 1px solid rgba(71,201,255,0.2);
+    }
+
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout p { margin: 0; }
+
+    .step-list {
+      counter-reset: steps;
+      list-style: none;
+    }
+
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .step-list li::before {
+      content: counter(steps);
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .step-list li span { font-size: 15px; }
+
+    /* 방법 카드 */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 24px 0 40px;
+    }
+
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .method-card:hover { border-color: var(--accent2); }
+
+    .method-card.recommended {
+      border-color: var(--accent);
+    }
+
+    .method-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .method-card h4 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .method-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .pros, .cons {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .pros { border-top: 2px solid var(--success); }
+    .cons { border-top: 2px solid #ff6b6b; }
+
+    .pros h5, .cons h5 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .pros h5 { color: var(--success); }
+    .cons h5 { color: #ff6b6b; }
+
+    .pros ul, .cons ul {
+      list-style: none;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .pros ul li::before { content: '+ '; color: var(--success); }
+    .cons ul li::before { content: '− '; color: #ff6b6b; }
+    .pros ul li, .cons ul li { margin-bottom: 4px; }
+
+    /* 포맷 미리보기 */
+    .format-preview {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    .format-preview::before {
+      content: 'PREVIEW';
+      position: absolute;
+      top: -1px; right: 16px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 0 0 4px 4px;
+      letter-spacing: 0.1em;
+    }
+
+    .format-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.9;
+    }
+
+    .format-date { color: var(--accent); font-weight: 600; }
+    .format-section { color: var(--accent2); }
+    .format-content { color: #999; }
+    .format-divider { color: #333; }
+
+    /* 규칙 테이블 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      vertical-align: top;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+
+    .tag-good {
+      display: inline-block;
+      background: rgba(77,255,145,0.1);
+      border: 1px solid rgba(77,255,145,0.3);
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .tag-bad {
+      display: inline-block;
+      background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.3);
+      color: #ff6b6b;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+      .header-inner, .container, footer { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 22px; }
+      .meta { flex-direction: column; gap: 8px; }
+      .method-grid { grid-template-columns: 1fr; }
+      .pros-cons { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="breadcrumb">
+      <a href="index.html">← 목차로 돌아가기</a>
+    </div>
+    <h1>Google Docs 회의록<br><em>AI 최적화 포맷</em> 가이드</h1>
+    <div class="meta">
+      <span>📅 2026-05-12</span>
+      <span>⏱ 약 15분</span>
+      <span>🏷 Google Docs · Apps Script · 회의록</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="intro-box">
+    <p>
+      Google Docs에 회의록을 기록할 때 <strong>AI가 파싱하기 좋은 포맷</strong>으로 작성하면 자동 정제 품질이 크게 높아진다.
+    </p>
+    <p>
+      이 가이드는 최적 포맷을 정의하고, 구글 문서에서 해당 포맷을 손쉽게 입력할 수 있는 세 가지 방법을 단계별로 안내한다.
+    </p>
+  </div>
+
+  <!-- 권장 포맷 -->
+  <div class="step-section">
+    <div class="step-label">Format</div>
+    <h2>AI 최적화 회의록 포맷</h2>
+
+    <p>아래 포맷을 기준으로 회의록을 작성한다. 날짜 형식과 섹션 제목을 매번 동일하게 유지하는 것이 가장 중요하다.</p>
+
+    <div class="format-preview">
+      <div class="format-line"><span class="format-date">21 Apr 2026 | 회의 제목</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-content">Attendees: 홍길동, 김철수, 이영희</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-section">[안건]</span></div>
+      <div class="format-line"><span class="format-content">- 안건 1</span></div>
+      <div class="format-line"><span class="format-content">- 안건 2</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-section">[논의]</span></div>
+      <div class="format-line"><span class="format-content">- 논의 내용을 bullet으로 작성</span></div>
+      <div class="format-line"><span class="format-content">- 압축하지 않아도 됨, 길게 써도 OK</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-section">[결정]</span></div>
+      <div class="format-line"><span class="format-content">- 결정된 사항만 명확하게</span></div>
+      <div class="format-line"><span class="format-content">- 없으면 "없음"</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-section">[액션아이템]</span></div>
+      <div class="format-line"><span class="format-content">- 홍길동 : 디자인 시안 수정 (기한: 4/28)</span></div>
+      <div class="format-line"><span class="format-content">- 없으면 "없음"</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-section">[이슈]</span></div>
+      <div class="format-line"><span class="format-content">- 반복되거나 우려되는 사항</span></div>
+      <div class="format-line"><span class="format-content">- 없으면 이 섹션 생략</span></div>
+      <div class="format-line">&nbsp;</div>
+      <div class="format-line"><span class="format-divider">---</span></div>
+    </div>
+
+    <h3>포맷 규칙</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th>규칙</th>
+          <th>이유</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>날짜</td>
+          <td><code>21 Apr 2026</code> 형식 고정</td>
+          <td>스크립트가 이 패턴으로 회의록을 분리함</td>
+        </tr>
+        <tr>
+          <td>구분선</td>
+          <td>회의록 끝에 <code>---</code></td>
+          <td>다음 회의록과의 경계를 명확히 함</td>
+        </tr>
+        <tr>
+          <td>섹션 제목</td>
+          <td><code>[안건]</code> <code>[논의]</code> <code>[결정]</code> <code>[액션아이템]</code> <code>[이슈]</code></td>
+          <td>AI가 섹션별로 내용을 파악함</td>
+        </tr>
+        <tr>
+          <td>액션아이템</td>
+          <td><code>담당자 : 내용 (기한: 날짜)</code></td>
+          <td>담당자/기한 자동 추출 가능</td>
+        </tr>
+        <tr>
+          <td>없는 항목</td>
+          <td>"없음" 명시</td>
+          <td>빈 칸보다 명확하게 처리됨</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>절대 피해야 할 것</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th>나쁜 예</th>
+          <th>좋은 예</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>날짜 형식</td>
+          <td><span class="tag-bad">2026.4.21</span> <span class="tag-bad">26/04/21</span></td>
+          <td><span class="tag-good">21 Apr 2026</span></td>
+        </tr>
+        <tr>
+          <td>섹션 제목</td>
+          <td><span class="tag-bad">논의사항</span> <span class="tag-bad">내용</span> <span class="tag-bad">논의내용</span></td>
+          <td><span class="tag-good">[논의]</span></td>
+        </tr>
+        <tr>
+          <td>회의록 구분</td>
+          <td><span class="tag-bad">구분 없이 이어 쓰기</span></td>
+          <td><span class="tag-good">--- 구분선 사용</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 방법 선택 -->
+  <div class="step-section">
+    <div class="step-label">Methods</div>
+    <h2>포맷 적용 방법 3가지</h2>
+
+    <p>상황에 맞게 선택한다. 방법 3이 가장 편하고 오류가 적다.</p>
+
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="method-badge">방법 1</div>
+        <h4>템플릿 탭</h4>
+        <p>탭 하나를 템플릿으로 만들어두고 복사해서 사용</p>
+      </div>
+      <div class="method-card">
+        <div class="method-badge">방법 2</div>
+        <h4>자동완성 단축어</h4>
+        <p>단축어 입력 시 포맷 자동 삽입</p>
+      </div>
+      <div class="method-card recommended">
+        <div class="method-badge">방법 3 ★ 추천</div>
+        <h4>Apps Script 버튼</h4>
+        <p>버튼 클릭 한 번으로 오늘 날짜 포함 포맷 자동 삽입</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 방법 1 -->
+  <div class="step-section">
+    <div class="step-label">Method 01</div>
+    <h2>방법 1 — 템플릿 탭 만들기</h2>
+    <p>가장 간단한 방법. 별도 설정 없이 지금 바로 시작할 수 있다.</p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h5>장점</h5>
+        <ul>
+          <li>설정 필요 없음</li>
+          <li>지금 당장 가능</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h5>단점</h5>
+        <ul>
+          <li>매번 복사해야 함</li>
+          <li>날짜 직접 입력 필요</li>
+        </ul>
+      </div>
+    </div>
+
+    <ul class="step-list">
+      <li><span>회의록 구글 문서 열기</span></li>
+      <li><span>하단 탭에서 <strong>+ (탭 추가)</strong> 클릭</span></li>
+      <li><span>탭 이름을 <code>📋 템플릿</code> 으로 변경 (탭 이름 더블클릭)</span></li>
+      <li><span>아래 포맷을 그대로 붙여넣기</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">template</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>DD Mon YYYY | 회의 제목
+
+Attendees: 
+
+[안건]
+- 
+
+[논의]
+- 
+
+[결정]
+- 
+
+[액션아이템]
+- 담당자 :  (기한: )
+
+[이슈]
+- 
+
+---</code></pre>
+    </div>
+
+    <p><strong>사용 방법:</strong> 새 회의록 작성 시 템플릿 탭에서 전체 선택(Cmd+A) → 복사(Cmd+C) → 해당 탭에 붙여넣기 → 날짜와 내용 입력</p>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <p>날짜 형식 예시: <code>12 May 2026</code> — 월은 반드시 영문 3글자(Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec)</p>
+    </div>
+  </div>
+
+  <!-- 방법 2 -->
+  <div class="step-section">
+    <div class="step-label">Method 02</div>
+    <h2>방법 2 — 자동완성 단축어 등록</h2>
+    <p>구글 문서의 환경설정에서 단축어를 등록해두면, 특정 단어를 입력할 때 자동으로 텍스트가 치환된다.</p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h5>장점</h5>
+        <ul>
+          <li>탭 안에서 바로 입력 가능</li>
+          <li>설정 한 번으로 영구 사용</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h5>단점</h5>
+        <ul>
+          <li>줄바꿈 포함 긴 텍스트 등록 불가</li>
+          <li>날짜 직접 입력 필요</li>
+          <li>섹션 제목만 단축어로 가능</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>구글 문서 자동완성은 줄바꿈이 포함된 긴 텍스트 등록이 되지 않는다. 섹션 제목처럼 짧은 텍스트만 단축어로 등록할 수 있다.</p>
+    </div>
+
+    <h3>단축어 등록 방법</h3>
+
+    <ul class="step-list">
+      <li><span>구글 문서 상단 메뉴 <strong>도구</strong> 클릭</span></li>
+      <li><span><strong>환경설정</strong> 클릭</span></li>
+      <li><span><strong>대체</strong> 탭 클릭</span></li>
+      <li><span>아래 표를 참고해 단축어 등록</span></li>
+    </ul>
+
+    <table>
+      <thead>
+        <tr>
+          <th>입력</th>
+          <th>변환</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>//안건</td><td>[안건]</td></tr>
+        <tr><td>//논의</td><td>[논의]</td></tr>
+        <tr><td>//결정</td><td>[결정]</td></tr>
+        <tr><td>//액션</td><td>[액션아이템]</td></tr>
+        <tr><td>//이슈</td><td>[이슈]</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <p>이후 구글 문서에서 <code>//안건</code> 입력 후 스페이스 또는 엔터를 누르면 <code>[안건]</code> 으로 자동 변환된다.</p>
+    </div>
+  </div>
+
+  <!-- 방법 3 -->
+  <div class="step-section">
+    <div class="step-label">Method 03 ★</div>
+    <h2>방법 3 — Apps Script 버튼 만들기</h2>
+    <p>구글 문서 안에 버튼을 만들어서, 클릭하면 <strong>오늘 날짜가 자동으로 포함된 포맷</strong>이 삽입된다. 날짜 오타가 없고 가장 편하다.</p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h5>장점</h5>
+        <ul>
+          <li>버튼 클릭 한 번으로 완료</li>
+          <li>날짜 자동 입력 (오타 없음)</li>
+          <li>초기 설정 후 영구 사용</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h5>단점</h5>
+        <ul>
+          <li>초기 설정 15분 필요</li>
+          <li>처음 실행 시 권한 허용 필요</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>1. Apps Script 열기</h3>
+
+    <ul class="step-list">
+      <li><span>구글 문서 상단 메뉴 <strong>확장 프로그램</strong> 클릭</span></li>
+      <li><span><strong>Apps Script</strong> 클릭 → 새 탭에서 편집기가 열림</span></li>
+      <li><span>기본으로 작성된 코드 전체 삭제</span></li>
+    </ul>
+
+    <h3>2. 스크립트 붙여넣기</h3>
+
+    <p>아래 코드를 편집기에 붙여넣기:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Apps Script (JavaScript)</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>function 새회의록추가() {
+  const doc = DocumentApp.getActiveDocument();
+  const body = doc.getBody();
+
+  // 오늘 날짜를 "21 Apr 2026" 형식으로 생성
+  const months = ['Jan','Feb','Mar','Apr','May','Jun',
+                  'Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today = new Date();
+  const dateStr = today.getDate() + ' ' +
+                  months[today.getMonth()] + ' ' +
+                  today.getFullYear();
+
+  // 포맷 텍스트
+  const template = dateStr + ' | 회의 제목\n\n' +
+    'Attendees: \n\n' +
+    '[안건]\n- \n\n' +
+    '[논의]\n- \n\n' +
+    '[결정]\n- \n\n' +
+    '[액션아이템]\n- 담당자 :  (기한: )\n\n' +
+    '[이슈]\n- \n\n' +
+    '---\n\n';
+
+  // 문서 맨 앞에 삽입
+  body.insertParagraph(0, template);
+
+  DocumentApp.getUi().alert('✅ 새 회의록 포맷이 추가되었습니다!');
+}
+
+function onOpen() {
+  DocumentApp.getUi()
+    .createMenu('📝 회의록')
+    .addItem('새 회의록 추가', '새회의록추가')
+    .addToUi();
+}</code></pre>
+    </div>
+
+    <h3>3. 저장 및 권한 허용</h3>
+
+    <ul class="step-list">
+      <li><span>상단 💾 저장 버튼 클릭 (또는 Cmd+S)</span></li>
+      <li><span>프로젝트 이름 입력창이 뜨면 <code>회의록 자동화</code> 입력 → <strong>확인</strong></span></li>
+      <li><span>▶ 실행 버튼 클릭 → 실행할 함수: <code>onOpen</code> 선택 → 실행</span></li>
+      <li><span>권한 요청 팝업이 뜨면 <strong>권한 검토</strong> → 본인 계정 선택 → <strong>허용</strong></span></li>
+    </ul>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>"Google이 확인하지 않은 앱" 경고가 뜨면: <strong>고급</strong> 클릭 → <strong>"회의록 자동화"(으)로 이동</strong> 클릭 → <strong>허용</strong></p>
+    </div>
+
+    <h3>4. 사용 방법</h3>
+
+    <ul class="step-list">
+      <li><span>구글 문서로 돌아가기 (탭 전환)</span></li>
+      <li><span>문서를 새로고침 (Cmd+R) — 메뉴에 <strong>📝 회의록</strong> 탭이 생김</span></li>
+      <li><span>상단 메뉴 <strong>📝 회의록</strong> → <strong>새 회의록 추가</strong> 클릭</span></li>
+      <li><span>문서 맨 위에 오늘 날짜가 포함된 포맷이 자동 삽입됨</span></li>
+      <li><span>제목, 참석자, 내용만 채우면 완료</span></li>
+    </ul>
+
+    <div class="callout success">
+      <div class="callout-icon">🎯</div>
+      <p>이후부터는 구글 문서를 열고 <strong>📝 회의록 → 새 회의록 추가</strong> 만 클릭하면 된다. 날짜는 항상 자동으로 올바른 형식으로 입력된다.</p>
+    </div>
+  </div>
+
+  <!-- 방법 비교 -->
+  <div class="step-section">
+    <div class="step-label">Summary</div>
+    <h2>방법 비교</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>방법</th>
+          <th>초기 설정</th>
+          <th>날짜 자동화</th>
+          <th>편의성</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. 템플릿 탭</td>
+          <td>없음</td>
+          <td><span class="tag-bad">직접 입력</span></td>
+          <td>복사/붙여넣기 필요</td>
+        </tr>
+        <tr>
+          <td>2. 자동완성 단축어</td>
+          <td>5분</td>
+          <td><span class="tag-bad">직접 입력</span></td>
+          <td>섹션 제목만 단축어 가능</td>
+        </tr>
+        <tr>
+          <td>3. Apps Script 버튼</td>
+          <td>15분</td>
+          <td><span class="tag-good">자동</span></td>
+          <td>버튼 클릭 한 번</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <span>eunnwk.github.io/docs</span>
+  <a href="index.html">← 목차</a>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'copied!';
+    btn.style.color = 'var(--success)';
+    btn.style.borderColor = 'var(--success)';
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
