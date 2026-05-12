@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Docs 회의록 → Obsidian 자동 정제 파이프라인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #e8ff47;
+      --accent2: #47c9ff;
+      --text: #e0e0e0;
+      --text-muted: #777;
+      --code-bg: #141414;
+      --success: #4dff91;
+      --warning: #ffb347;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(232,255,71,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    h1 {
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    h1 em { color: var(--accent); font-style: normal; }
+
+    .meta {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      flex-wrap: wrap;
+    }
+
+    /* TOC */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px 28px;
+      margin-bottom: 56px;
+    }
+
+    .toc-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .toc ol {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toc ol li {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .toc-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      min-width: 20px;
+    }
+
+    .toc ol a {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .toc ol a:hover { color: var(--accent2); }
+
+    /* Layout */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    .intro-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 24px 28px;
+      margin-bottom: 56px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .intro-box p { font-size: 15px; color: #ccc; margin-bottom: 10px; }
+    .intro-box p:last-child { margin-bottom: 0; }
+    .intro-box strong { color: var(--accent); font-weight: 500; }
+
+    .step-section {
+      margin-bottom: 72px;
+      scroll-margin-top: 24px;
+    }
+
+    .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--accent2);
+      margin: 28px 0 12px;
+    }
+
+    p { margin-bottom: 14px; font-size: 15px; }
+
+    .explain {
+      background: rgba(71,201,255,0.04);
+      border: 1px solid rgba(71,201,255,0.12);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .explain strong { color: var(--accent2); font-weight: 500; }
+
+    /* Code */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: #1e1e1e;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #d0d0d0;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: #222;
+      color: var(--accent2);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    pre code { background: none; padding: 0; color: inherit; }
+
+    /* Callout */
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    .callout.warn { background: rgba(255,179,71,0.08); border: 1px solid rgba(255,179,71,0.25); }
+    .callout.success { background: rgba(77,255,145,0.06); border: 1px solid rgba(77,255,145,0.2); }
+    .callout.info { background: rgba(71,201,255,0.06); border: 1px solid rgba(71,201,255,0.2); }
+
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout p { margin: 0; }
+
+    /* Step list */
+    .step-list { counter-reset: steps; list-style: none; }
+
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .step-list li::before {
+      content: counter(steps);
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .step-list li span { font-size: 15px; }
+
+    /* Flow */
+    .flow { display: flex; flex-direction: column; margin: 24px 0; }
+
+    .flow-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .flow-item:first-child { border-radius: 6px 6px 0 0; }
+    .flow-item:last-child { border-radius: 0 0 6px 6px; }
+    .flow-item + .flow-item { border-top: none; }
+
+    .flow-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+    .flow-text { font-size: 14px; }
+    .flow-text strong { color: var(--accent); font-weight: 500; }
+    .flow-text small { color: var(--text-muted); font-size: 12px; display: block; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+
+    th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    td { border: 1px solid var(--border); padding: 10px 14px; vertical-align: top; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* 준비물 카드 */
+    .prep-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .prep-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 20px;
+      font-size: 14px;
+    }
+
+    .prep-card .icon { font-size: 20px; margin-bottom: 8px; }
+    .prep-card strong { display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .prep-card span { font-size: 13px; color: var(--text-muted); }
+
+    /* 일상 사용 카드 */
+    .usage-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 12px 0;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .usage-num {
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .usage-body strong { display: block; font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .usage-body p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header-inner, .container, footer { padding-left: 20px; padding-right: 20px; }
+      h1 { font-size: 22px; }
+      .meta { flex-direction: column; gap: 8px; }
+      .prep-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="breadcrumb"><a href="index.html">← 목차로 돌아가기</a></div>
+    <h1>Google Docs 회의록<br><em>Obsidian 자동 정제</em> 파이프라인</h1>
+    <div class="meta">
+      <span>📅 2026-05-12</span>
+      <span>⏱ 약 60분 (최초 세팅 기준)</span>
+      <span>🏷 Google Docs · Claude API · Python · Obsidian</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="intro-box">
+    <p>Google Docs 탭에 자유롭게 쌓아온 회의록을 <strong>Claude AI가 자동으로 읽고 구조화된 마크다운으로 변환</strong>해서 Obsidian Vault에 저장하는 자동화 파이프라인이다.</p>
+    <p>개발 지식이 없어도 이 가이드를 순서대로 따라하면 세팅을 완료할 수 있다. 최초 세팅 후에는 터미널 명령어 세 줄로 전체 회의록을 일괄 정제할 수 있다.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">목차</div>
+    <ol>
+      <li><span class="toc-num">01</span><a href="#overview">전체 흐름 및 준비물</a></li>
+      <li><span class="toc-num">02</span><a href="#api-key">Anthropic API 크레딧 & 키 발급</a></li>
+      <li><span class="toc-num">03</span><a href="#google-cloud">Google Cloud Console 설정</a></li>
+      <li><span class="toc-num">04</span><a href="#python">Python 환경 설정</a></li>
+      <li><span class="toc-num">05</span><a href="#script">스크립트 설정 및 실행</a></li>
+      <li><span class="toc-num">06</span><a href="#tab-config">탭 분류 설정</a></li>
+      <li><span class="toc-num">07</span><a href="#daily">매번 사용할 때 순서</a></li>
+    </ol>
+  </div>
+
+  <!-- 01 개요 -->
+  <div class="step-section" id="overview">
+    <div class="step-label">Step 01</div>
+    <h2>전체 흐름 및 준비물</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> 전체 파이프라인의 구조를 파악하고, 세팅에 필요한 준비물을 확인한다.
+    </div>
+
+    <h3>전체 흐름</h3>
+
+    <div class="flow">
+      <div class="flow-item">
+        <div class="flow-icon">📄</div>
+        <div class="flow-text">
+          <strong>Google Docs (자유 서술 회의록)</strong>
+          <small>탭 단위로 쌓인 원본 회의록</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#1e1e1e; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼ Google Docs API로 추출</div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon">🐍</div>
+        <div class="flow-text">
+          <strong>Python 스크립트 (meeting_refiner.py)</strong>
+          <small>탭별로 타입 분류 후 Claude API에 전달</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#1e1e1e; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼ Claude API로 구조화</div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-icon">✨</div>
+        <div class="flow-text">
+          <strong>구조화된 마크다운</strong>
+          <small>YAML frontmatter + 섹션별 정제 내용</small>
+        </div>
+      </div>
+      <div class="flow-item" style="background:#111; border-color:#1e1e1e; padding:6px 20px;">
+        <div style="color:#333; font-size:13px; margin-left:48px;">▼ 파일로 저장</div>
+      </div>
+      <div class="flow-item" style="border-left: 3px solid var(--accent);">
+        <div class="flow-icon">🗂</div>
+        <div class="flow-text">
+          <strong>Obsidian Vault</strong>
+          <small>CLT/NX/회의록/ 및 CLT/NX/분석/이슈트래킹/ 에 자동 저장</small>
+        </div>
+      </div>
+    </div>
+
+    <h3>변환 결과물 두 가지</h3>
+
+    <table>
+      <thead>
+        <tr><th>타입</th><th>대상 탭</th><th>저장 경로</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>타입 1 · 회의록</td>
+          <td>연도 그룹 하위 탭 (2024, 2025, 2026 회의록)</td>
+          <td><code>CLT/NX/회의록/연도/</code></td>
+        </tr>
+        <tr>
+          <td>타입 2 · 이슈트래킹</td>
+          <td>반복되는 문제점 파악 그룹 하위 탭</td>
+          <td><code>CLT/NX/분석/이슈트래킹/</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>준비물</h3>
+
+    <div class="prep-grid">
+      <div class="prep-card">
+        <div class="icon">💻</div>
+        <strong>Mac 컴퓨터</strong>
+        <span>터미널 사용 가능한 환경</span>
+      </div>
+      <div class="prep-card">
+        <div class="icon">🔵</div>
+        <strong>Google 계정</strong>
+        <span>회의록이 저장된 계정</span>
+      </div>
+      <div class="prep-card">
+        <div class="icon">🤖</div>
+        <strong>Anthropic 계정</strong>
+        <span>claude.ai 가입 계정 (API는 별도)</span>
+      </div>
+      <div class="prep-card">
+        <div class="icon">🗂</div>
+        <strong>Obsidian</strong>
+        <span>설치 완료 & Vault 경로 확인</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 API 키 -->
+  <div class="step-section" id="api-key">
+    <div class="step-label">Step 02</div>
+    <h2>Anthropic API 크레딧 & 키 발급</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> Claude AI를 코드에서 사용하기 위한 API 키를 발급하고 크레딧을 충전한다. claude.ai 구독과는 완전히 별개로, API 사용량에 따라 요금이 부과된다. 회의록 100건 기준 약 $1~3 수준이다.
+    </div>
+
+    <ul class="step-list">
+      <li><span><a href="https://console.anthropic.com" style="color:var(--accent2)">console.anthropic.com</a> 접속 후 로그인</span></li>
+      <li><span>왼쪽 메뉴 <strong>"Plans & Billing"</strong> 클릭 → 크레딧 충전</span></li>
+      <li><span>왼쪽 메뉴 <strong>"API Keys"</strong> 클릭</span></li>
+      <li><span><strong>"Create Key"</strong> 버튼 클릭 → 키 이름 입력 → 생성</span></li>
+      <li><span>발급된 키(<code>sk-ant-</code> 로 시작)를 안전한 곳에 메모 — 다시 볼 수 없음</span></li>
+    </ul>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>API 키는 발급 직후에만 전체 값이 표시된다. 반드시 메모장 등에 복사해두어야 한다.</p>
+    </div>
+  </div>
+
+  <!-- 03 Google Cloud -->
+  <div class="step-section" id="google-cloud">
+    <div class="step-label">Step 03</div>
+    <h2>Google Cloud Console 설정</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> Python 코드가 Google Docs를 읽어올 수 있도록 Google의 허가(인증)를 설정한다. Google Cloud에 앱을 등록하고, 인증 파일(<code>credentials.json</code>)을 발급받는다.
+    </div>
+
+    <h3>3-1. Google Cloud 프로젝트 생성</h3>
+
+    <ul class="step-list">
+      <li><span><a href="https://console.cloud.google.com" style="color:var(--accent2)">console.cloud.google.com</a> 접속 — 회의록이 있는 구글 계정으로 로그인</span></li>
+      <li><span>상단 <strong>"프로젝트 선택"</strong> 클릭 → 팝업 우측 상단 <strong>"새 프로젝트"</strong> 클릭</span></li>
+      <li><span>프로젝트 이름: <code>nx-meeting-refiner</code> 입력 → <strong>"만들기"</strong></span></li>
+    </ul>
+
+    <h3>3-2. API 활성화</h3>
+
+    <div class="explain">
+      <strong>Google Drive API와 Google Docs API</strong> 두 가지를 모두 활성화해야 한다. Drive API는 파일 목록 조회, Docs API는 문서 내용 읽기에 사용된다.
+    </div>
+
+    <ul class="step-list">
+      <li><span>왼쪽 메뉴 <strong>"API 및 서비스"</strong> → <strong>"라이브러리"</strong> 클릭</span></li>
+      <li><span>검색창에 <code>Google Drive API</code> 입력 → 클릭 → <strong>"사용"</strong></span></li>
+      <li><span>다시 라이브러리로 돌아가서 <code>Google Docs API</code> 검색 → 클릭 → <strong>"사용"</strong></span></li>
+    </ul>
+
+    <h3>3-3. OAuth 동의 화면 설정</h3>
+
+    <div class="explain">
+      코드가 내 Google 계정에 접근할 때 표시할 앱 정보를 설정하는 단계다. 본인만 사용하는 용도이므로 간단하게 설정하면 된다.
+    </div>
+
+    <ul class="step-list">
+      <li><span>주소창에 <code>https://console.cloud.google.com/auth/overview</code> 입력해서 이동</span></li>
+      <li><span><strong>"시작하기"</strong> 버튼 클릭</span></li>
+      <li><span>앱 이름: <code>nx-meeting-refiner</code> 입력</span></li>
+      <li><span>사용자 지원 이메일: 드롭다운에서 본인 이메일 선택</span></li>
+      <li><span><strong>"다음"</strong>을 계속 클릭해서 완료 → <strong>"만들기"</strong></span></li>
+    </ul>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <p>하단에 <strong>"OAuth 구성 생성됨"</strong> 토스트 메시지가 뜨면 성공이다.</p>
+    </div>
+
+    <h3>3-4. OAuth 클라이언트 ID 발급</h3>
+
+    <div class="explain">
+      코드가 Google 계정에 로그인할 때 사용하는 인증 자격증명을 만드는 단계다. 이 단계에서 만들어지는 <code>credentials.json</code> 파일이 핵심이다.
+    </div>
+
+    <ul class="step-list">
+      <li><span>화면에서 <strong>"OAuth 클라이언트 만들기"</strong> 버튼 클릭</span></li>
+      <li><span>애플리케이션 유형: <strong>"데스크톱 앱"</strong> 선택</span></li>
+      <li><span>이름: <code>nx-meeting-refiner-client</code> 입력 → <strong>"만들기"</strong></span></li>
+      <li><span>생성 완료 후 왼쪽 메뉴 <strong>"클라이언트"</strong> 클릭 → 목록에서 ⬇ 다운로드 아이콘 클릭</span></li>
+      <li><span>다운로드된 파일 이름을 <code>credentials.json</code> 으로 변경</span></li>
+    </ul>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>다운로드 버튼이 작동하지 않는 경우: 클라이언트 상세 페이지에서 <strong>클라이언트 ID</strong>와 <strong>클라이언트 보안 비밀번호</strong>를 복사해두고, 아래 내용을 텍스트 에디터에 붙여넣어 직접 파일을 만든다.</p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">credentials.json</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>{
+  "installed": {
+    "client_id": "여기에_클라이언트ID",
+    "client_secret": "여기에_보안비밀번호",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "redirect_uris": ["http://localhost"]
+  }
+}</code></pre>
+    </div>
+
+    <h3>3-5. 테스트 사용자 추가</h3>
+
+    <div class="explain">
+      외부 앱으로 등록했기 때문에 본인 계정을 테스트 사용자로 등록해야 Google 로그인이 가능하다.
+    </div>
+
+    <ul class="step-list">
+      <li><span>왼쪽 메뉴 <strong>"대상"</strong> 클릭</span></li>
+      <li><span><strong>"ADD USERS"</strong> 클릭 → 본인 구글 계정 이메일 입력 → <strong>"저장"</strong></span></li>
+    </ul>
+
+    <h3>3-6. 파일 정리</h3>
+
+    <ul class="step-list">
+      <li><span>바탕화면에 <code>report-bot</code> 폴더 생성</span></li>
+      <li><span><code>credentials.json</code> 을 <code>report-bot</code> 폴더 안으로 이동</span></li>
+      <li><span><code>meeting_refiner.py</code> 도 같은 폴더 안으로 이동</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">폴더 구조</span></div>
+      <pre><code>바탕화면/
+└── report-bot/
+    ├── credentials.json   ← Google 인증 파일
+    └── meeting_refiner.py ← 정제 스크립트</code></pre>
+    </div>
+  </div>
+
+  <!-- 04 Python -->
+  <div class="step-section" id="python">
+    <div class="step-label">Step 04</div>
+    <h2>Python 환경 설정</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> 스크립트 실행에 필요한 Python 패키지를 설치한다. 가상환경(venv)은 이 프로젝트에서만 사용하는 독립된 Python 공간으로, 다른 프로젝트와 충돌을 방지한다.
+    </div>
+
+    <p>터미널(Terminal.app)을 열고 아래 명령어를 순서대로 실행한다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code># 1. report-bot 폴더로 이동
+cd /Users/사용자이름/Desktop/report-bot
+
+# 2. 가상환경 생성 (최초 1회만)
+python3 -m venv venv
+
+# 3. 가상환경 활성화
+source venv/bin/activate
+# → 프롬프트 앞에 (venv) 가 붙으면 성공
+
+# 4. 필요한 패키지 설치
+pip install google-auth google-auth-oauthlib google-api-python-client anthropic</code></pre>
+    </div>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <p>설치가 완료되고 프롬프트 앞에 <code>(venv)</code> 가 표시되면 준비 완료다.</p>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <p>터미널을 새로 열 때마다 <code>source venv/bin/activate</code> 를 실행해야 한다. 이 명령어 없이 스크립트를 실행하면 패키지를 찾지 못해 오류가 난다.</p>
+    </div>
+  </div>
+
+  <!-- 05 스크립트 -->
+  <div class="step-section" id="script">
+    <div class="step-label">Step 05</div>
+    <h2>스크립트 설정 및 실행</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> <code>meeting_refiner.py</code> 상단의 설정값을 본인 환경에 맞게 확인하고, 테스트 실행 → 전체 실행 순서로 진행한다.
+    </div>
+
+    <h3>설정값 확인</h3>
+
+    <p><code>meeting_refiner.py</code> 상단에서 아래 항목이 본인 환경과 맞는지 확인한다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">meeting_refiner.py — 설정 영역</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>TEST_MODE        = True   # 처음엔 반드시 True로 시작
+CREDENTIALS_PATH = "/Users/사용자이름/Desktop/report-bot/credentials.json"
+TOKEN_PATH       = "/Users/사용자이름/Desktop/report-bot/token.json"
+DOC_ID           = "구글_문서_ID"   # 아래 방법으로 확인
+VAULT_PATH       = Path("/Users/사용자이름/Documents/Obsidian Vault")
+MEETING_BASE     = VAULT_PATH / "CLT/NX/회의록"
+ISSUE_BASE       = VAULT_PATH / "CLT/NX/분석/이슈트래킹"</code></pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <p><strong>구글 문서 ID 확인 방법:</strong> 구글 문서를 열고 주소창을 확인한다. <code>/d/</code> 와 <code>/edit</code> 사이의 긴 문자열이 문서 ID다.<br>
+      예: <code>docs.google.com/document/d/<strong>1YJ08tl0HQpi...</strong>/edit</code></p>
+    </div>
+
+    <h3>테스트 실행 (처음에는 반드시 먼저)</h3>
+
+    <div class="explain">
+      전체를 한 번에 실행하면 API 비용이 많이 발생할 수 있다. <code>TEST_MODE = True</code> 상태에서 탭 1개만 처리해 결과를 먼저 확인한다.
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>cd /Users/사용자이름/Desktop/report-bot
+source venv/bin/activate
+export ANTHROPIC_API_KEY="sk-ant-여기에_API키_입력"
+python meeting_refiner.py</code></pre>
+    </div>
+
+    <ul class="step-list">
+      <li><span>처음 실행 시 브라우저에 Google 로그인 창이 열린다 → 본인 계정으로 로그인</span></li>
+      <li><span>터미널에 <code>🧪 테스트 모드 완료</code> 메시지가 뜨면 성공</span></li>
+      <li><span>Obsidian에서 생성된 파일을 열어 포맷과 내용이 올바른지 확인</span></li>
+    </ul>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <p>결과물이 만족스러우면 전체 실행으로 넘어간다. 이상하면 스크립트 상단의 프롬프트를 수정한다.</p>
+    </div>
+
+    <h3>전체 실행</h3>
+
+    <p>테스트 확인 후 <code>TEST_MODE</code> 를 <code>False</code> 로 바꾸고 전체를 실행한다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code># TEST_MODE를 False로 변경
+sed -i '' 's/TEST_MODE        = True/TEST_MODE        = False/' meeting_refiner.py
+
+# 전체 실행
+python meeting_refiner.py</code></pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <p>탭이 많으면 시간이 걸린다. 터미널에 각 탭의 처리 진행 상황이 출력되며, 마지막에 <code>🎉 완료!</code> 가 뜨면 전체 처리가 끝난 것이다.</p>
+    </div>
+
+    <h3>오류 발생 시 확인표</h3>
+
+    <table>
+      <thead>
+        <tr><th>오류 메시지</th><th>원인</th><th>해결 방법</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>credit balance is too low</code></td>
+          <td>API 크레딧 부족</td>
+          <td>console.anthropic.com에서 충전</td>
+        </tr>
+        <tr>
+          <td><code>Could not resolve authentication</code></td>
+          <td>API 키 미설정</td>
+          <td><code>export ANTHROPIC_API_KEY=...</code> 실행</td>
+        </tr>
+        <tr>
+          <td>총 0개 탭 발견</td>
+          <td>문서 ID 오류</td>
+          <td>DOC_ID 값 재확인</td>
+        </tr>
+        <tr>
+          <td>탭이 전부 건너뜀</td>
+          <td>탭 분류 기준 불일치</td>
+          <td>Step 06 참고</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 06 탭 분류 -->
+  <div class="step-section" id="tab-config">
+    <div class="step-label">Step 06</div>
+    <h2>탭 분류 설정</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> 스크립트가 Google Docs의 각 탭을 타입 1(회의록) 또는 타입 2(이슈트래킹)로 자동 분류할 수 있도록 설정한다. 탭 구조가 바뀌거나 새 탭이 생겼을 때도 여기를 수정한다.
+    </div>
+
+    <h3>탭 구조 확인 방법</h3>
+
+    <p>스크립트 실행 전에 실제 탭 계층 구조를 확인하고 싶다면 아래 명령어를 실행한다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>python -c "
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+creds = Credentials.from_authorized_user_file('token.json')
+service = build('docs', 'v1', credentials=creds)
+doc = service.documents().get(documentId='여기에_문서ID', includeTabsContent=True).execute()
+def print_tabs(tabs, depth=0):
+    for tab in tabs:
+        props = tab.get('tabProperties', {})
+        print('  ' * depth + '[' + props.get('title', '') + ']')
+        print_tabs(tab.get('childTabs', []), depth+1)
+print_tabs(doc.get('tabs', []))
+"</code></pre>
+    </div>
+
+    <h3>분류 설정 방법</h3>
+
+    <p><code>meeting_refiner.py</code> 상단에서 아래 두 변수를 수정한다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">meeting_refiner.py — 분류 설정</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code># 타입 1로 처리할 부모 탭 이름 (연도 그룹)
+YEAR_PARENTS = {"2024", "2025", "2026 회의록"}
+
+# 타입 2로 강제 지정할 탭 이름 (이름 기준)
+ISSUE_TABS = {
+    "대응 2026",
+    "대응",
+    "ChatBot 업무 타임라인",
+    "DS w/CLV",
+    "AI Chat Fomatter",
+    "2024 History",
+    "NX 개발 배경 및 현황",
+    "유저 리서치 & 페르소나",
+}</code></pre>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>상황</th><th>할 일</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>새 연도 그룹 탭이 생김 (예: 2027 회의록)</td>
+          <td><code>YEAR_PARENTS</code> 에 추가</td>
+        </tr>
+        <tr>
+          <td>이슈트래킹 성격의 탭이 새로 생김</td>
+          <td><code>ISSUE_TABS</code> 에 탭 이름 추가</td>
+        </tr>
+        <tr>
+          <td>탭이 건너뛰어짐 (분류 불가)</td>
+          <td>탭의 부모 이름을 확인하고 위 두 변수 중 적절한 곳에 추가</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 07 일상 사용 -->
+  <div class="step-section" id="daily">
+    <div class="step-label">Step 07</div>
+    <h2>매번 사용할 때 순서</h2>
+
+    <div class="explain">
+      <strong>이 단계에서 하는 것:</strong> 세팅 완료 후 실제로 매번 사용할 때의 순서다. 터미널을 새로 열 때마다 아래 순서를 따른다.
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">1</div>
+      <div class="usage-body">
+        <strong>터미널 열기</strong>
+        <p>Mac 상단 검색(🔍) → <code>Terminal</code> 검색 → 실행</p>
+      </div>
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">2</div>
+      <div class="usage-body">
+        <strong>report-bot 폴더로 이동</strong>
+        <p><code>cd /Users/사용자이름/Desktop/report-bot</code></p>
+      </div>
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">3</div>
+      <div class="usage-body">
+        <strong>가상환경 활성화</strong>
+        <p><code>source venv/bin/activate</code> — 프롬프트 앞에 <code>(venv)</code> 가 붙으면 성공</p>
+      </div>
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">4</div>
+      <div class="usage-body">
+        <strong>API 키 설정</strong>
+        <p><code>export ANTHROPIC_API_KEY="sk-ant-여기에_API키"</code> — 터미널 새로 열 때마다 필요</p>
+      </div>
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">5</div>
+      <div class="usage-body">
+        <strong>스크립트 실행</strong>
+        <p><code>python meeting_refiner.py</code></p>
+      </div>
+    </div>
+
+    <div class="usage-card">
+      <div class="usage-num">6</div>
+      <div class="usage-body">
+        <strong>완료 확인</strong>
+        <p>터미널에 <code>🎉 완료!</code> 가 뜨면 성공. Obsidian에서 파일 확인.</p>
+      </div>
+    </div>
+
+    <h3>API 키 영구 저장 (4번 단계 생략 가능)</h3>
+
+    <p>매번 API 키를 입력하기 번거롭다면 아래 명령어로 영구 저장한다. 한 번만 실행하면 된다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>echo 'export ANTHROPIC_API_KEY="sk-ant-여기에_API키"' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+    </div>
+
+    <div class="callout success">
+      <div class="callout-icon">✅</div>
+      <p>영구 저장 후에는 터미널을 열고 <strong>2 → 3 → 5번</strong>만 실행하면 된다.</p>
+    </div>
+
+    <h3>Obsidian에서 인사이트 조회</h3>
+
+    <p>Dataview 플러그인을 사용하면 저장된 회의록을 다양한 방법으로 조회할 수 있다.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">dataview — 액션아이템 미완료 조회</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>TASK
+FROM "CLT/NX/회의록"
+WHERE !completed</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">dataview — 프로젝트별 회의 목록</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>TABLE date, meeting_type, attendees
+FROM "CLT/NX/회의록"
+WHERE project = "프로젝트명"
+SORT date DESC</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">dataview — 이슈트래킹 목록</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <pre><code>TABLE topic, period_start, period_end
+FROM "CLT/NX/분석/이슈트래킹"
+SORT period_end DESC</code></pre>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>eunnwk.github.io/docs</span>
+  <a href="index.html">← 목차</a>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'copied!';
+    btn.style.color = 'var(--success)';
+    btn.style.borderColor = 'var(--success)';
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
