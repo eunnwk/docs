@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slack → Obsidian 자동화 가이드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #17171e;
+      --surface2: #1e1e28;
+      --border: #2a2a38;
+      --accent: #7c6af7;
+      --accent2: #4ecdc4;
+      --accent3: #f7c56a;
+      --text: #e8e8f0;
+      --text-muted: #7a7a9a;
+      --success: #4ecdc4;
+      --code-bg: #12121a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f0f13 0%, #1a1428 50%, #0f1320 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 40px 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(124,106,247,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: 200px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(78,205,196,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(124,106,247,0.15);
+      border: 1px solid rgba(124,106,247,0.3);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 42px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #e8e8f0 0%, #a8a8cc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-sub {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .flow-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .flow-item.highlight {
+      border-color: rgba(124,106,247,0.4);
+      color: var(--accent);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Main content */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* Section */
+    .section {
+      margin-top: 60px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 26px;
+      color: var(--text);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Step card */
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .step-card:hover {
+      border-color: rgba(124,106,247,0.3);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #5b4de8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 500;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .step-body {
+      padding: 0 24px 20px 72px;
+    }
+
+    .step-body p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #c8c8e8;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .code-block.success {
+      border-left-color: var(--success);
+    }
+
+    .code-block.warning {
+      border-left-color: var(--accent3);
+    }
+
+    /* Table */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .info-table th {
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+
+    .info-table td {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .info-table td:first-child {
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      width: 40%;
+    }
+
+    .info-table td code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--code-bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--accent2);
+    }
+
+    /* Alert */
+    .alert {
+      background: rgba(247,197,106,0.08);
+      border: 1px solid rgba(247,197,106,0.25);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 13px;
+      color: var(--accent3);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .alert-icon { flex-shrink: 0; font-size: 16px; }
+
+    .alert-info {
+      background: rgba(78,205,196,0.08);
+      border-color: rgba(78,205,196,0.25);
+      color: var(--accent2);
+    }
+
+    /* Sub steps */
+    .sub-steps {
+      list-style: none;
+      margin: 8px 0;
+    }
+
+    .sub-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(42,42,56,0.5);
+    }
+
+    .sub-steps li:last-child { border-bottom: none; }
+
+    .sub-steps li::before {
+      content: '→';
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Summary box */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(124,106,247,0.08), rgba(78,205,196,0.05));
+      border: 1px solid rgba(124,106,247,0.2);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-top: 48px;
+    }
+
+    .summary-box h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .checklist {
+      list-style: none;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(42,42,56,0.4);
+    }
+
+    .checklist li:last-child { border-bottom: none; }
+
+    .check-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(78,205,196,0.2);
+      border: 1px solid rgba(78,205,196,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 48px 0;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header { padding: 40px 20px; }
+      .header h1 { font-size: 28px; }
+      .container { padding: 0 20px 60px; }
+      .step-body { padding-left: 24px; }
+      .footer { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="badge">Automation Guide · 2026.06.03</div>
+    <h1>Slack → Obsidian<br>자동화 구축 가이드</h1>
+    <p class="header-sub">회사에서 Slack에 메모를 남기면 → 집 Obsidian에 자동으로 쌓이는 파이프라인</p>
+
+    <div class="flow-diagram">
+      <div class="flow-item highlight">Slack #kom-inbox</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item">Zapier</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item">Google Drive</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-item highlight">Obsidian / Inbox</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STEP 1 -->
+  <div class="section">
+    <div class="section-label">Step 01</div>
+    <div class="section-title">Google Drive 폴더 생성</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">개인 Google 계정으로 drive.google.com 접속</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">내 드라이브 최상단에 새 폴더 생성</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block">폴더명: kom-inbox</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">LG Gram 파일 탐색기에서 동기화 확인</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block">내 드라이브/
+└── kom-inbox/   ← 여기 보이면 OK</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="section">
+    <div class="section-label">Step 02</div>
+    <div class="section-title">Obsidian ↔ Google Drive 심링크 연결</div>
+
+    <div class="alert">
+      <span class="alert-icon">⚠</span>
+      <span>Vault 전체를 Drive에 올리지 않고, <strong>Inbox 폴더만</strong> Drive와 연결하는 방식. 개인 정보(재무, 소설 등)는 로컬 전용으로 유지됨.</span>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">시작 메뉴 → cmd 검색 → 관리자 권한으로 실행</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">심링크 명령어 실행</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block">mklink /D "C:\Users\eunhy\obsidian-komx2\Inbox" "G:\내 드라이브\kom-inbox"</div>
+        <p>성공 메시지:</p>
+        <div class="code-block success">C:\Users\eunhy\obsidian-komx2\Inbox &lt;&lt;===&gt;&gt; G:\내 드라이브\kom-inbox에 대한 기호화된 링크를 만들었습니다.</div>
+
+        <table class="info-table">
+          <tr>
+            <th>항목</th>
+            <th>값</th>
+          </tr>
+          <tr>
+            <td>Vault 경로</td>
+            <td><code>C:\Users\eunhy\obsidian-komx2</code></td>
+          </tr>
+          <tr>
+            <td>Drive 문자</td>
+            <td><code>G:\</code></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Obsidian에서 Inbox 폴더 확인</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block">obsidian-komx2/
+└── Inbox/   ← 폴더 보이면 연결 성공</div>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ</span>
+          <span>Obsidian은 기본적으로 .md 파일만 표시. Google Drive에서 test.md 파일 생성 후 Obsidian Inbox에 나타나면 완전 연결 성공.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="section">
+    <div class="section-label">Step 03</div>
+    <div class="section-title">Zapier 자동화 설정</div>
+
+    <div class="alert alert-info">
+      <span class="alert-icon">ℹ</span>
+      <span>Make.com은 Gmail 개인 계정의 Google Drive 연결 시 OAuth 오류 발생 → Zapier로 대체. Zapier 무료 플랜: 월 100회 실행.</span>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">Trigger 설정 — Slack</div>
+      </div>
+      <div class="step-body">
+        <ul class="sub-steps">
+          <li>zapier.com → Create → Zap</li>
+          <li>Trigger → Slack 선택</li>
+          <li>Event: <strong>New Message Posted to Private Channel</strong></li>
+          <li>개인 Slack 계정 연결</li>
+          <li>Channel: <strong>#kom-inbox</strong></li>
+          <li>Trigger for Bot Messages: <strong>No</strong></li>
+          <li>Choose where to start: <strong>From now on</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">Action 설정 — Google Drive</div>
+      </div>
+      <div class="step-body">
+        <ul class="sub-steps">
+          <li>Action → Google Drive 선택</li>
+          <li>Event: <strong>Create File From Text</strong></li>
+          <li>개인 Google 계정 연결</li>
+        </ul>
+
+        <table class="info-table" style="margin-top:16px">
+          <tr>
+            <th>항목</th>
+            <th>값</th>
+          </tr>
+          <tr>
+            <td>Drive</td>
+            <td>My Google Drive</td>
+          </tr>
+          <tr>
+            <td>Folder</td>
+            <td><code>kom-inbox</code></td>
+          </tr>
+          <tr>
+            <td>File Name</td>
+            <td><code>[Ts Time].md</code></td>
+          </tr>
+          <tr>
+            <td>Convert to Document?</td>
+            <td>False</td>
+          </tr>
+        </table>
+
+        <p style="margin-top:16px">File Content 템플릿:</p>
+        <div class="code-block">---
+created: [Ts Time]
+source: slack
+tags: [inbox]
+---
+
+[Text]</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Publish & Turn On</div>
+      </div>
+      <div class="step-body">
+        <ul class="sub-steps">
+          <li>Test step → 파일 생성 확인</li>
+          <li>우상단 Publish 클릭 → Publish & Turn On</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 완성된 구조 -->
+  <div class="section">
+    <div class="section-label">Result</div>
+    <div class="section-title">완성된 파이프라인</div>
+
+    <div class="code-block">회사에서
+Slack #kom-inbox에 메시지 작성
+↓ (자동, 15분 이내)
+Google Drive / kom-inbox / [날짜].md 생성
+↓ (Drive for Desktop 즉시 동기화)
+LG Gram Obsidian / Inbox / [날짜].md 등장
+↓
+집에서 Obsidian 열면 이미 쌓여 있음
+↓
+Claude와 함께 검증 / 분류 / 정리 → kom-tank</div>
+  </div>
+
+  <!-- 요금제 -->
+  <div class="section">
+    <div class="section-label">Note</div>
+    <div class="section-title">Zapier 무료 플랜 제한</div>
+
+    <table class="info-table">
+      <tr>
+        <th>항목</th>
+        <th>무료 플랜</th>
+      </tr>
+      <tr>
+        <td>Zap 개수</td>
+        <td>5개</td>
+      </tr>
+      <tr>
+        <td>월 실행 횟수</td>
+        <td>100회 (하루 약 3~4개)</td>
+      </tr>
+      <tr>
+        <td>실행 주기</td>
+        <td>15분마다 체크</td>
+      </tr>
+      <tr>
+        <td>초과 시</td>
+        <td>해당 월 자동화 중단, 다음 달 초 리셋</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 최종 체크리스트 -->
+  <div class="summary-box">
+    <h3>✅ 오늘 완료한 작업</h3>
+    <ul class="checklist">
+      <li>
+        <div class="check-icon">✓</div>
+        Google Drive <code>kom-inbox</code> 폴더 생성
+      </li>
+      <li>
+        <div class="check-icon">✓</div>
+        LG Gram Google Drive for Desktop 동기화 확인
+      </li>
+      <li>
+        <div class="check-icon">✓</div>
+        cmd 심링크로 Obsidian Inbox ↔ Google Drive 연결
+      </li>
+      <li>
+        <div class="check-icon">✓</div>
+        Obsidian에서 Inbox 폴더 정상 인식 확인
+      </li>
+      <li>
+        <div class="check-icon">✓</div>
+        Zapier Slack → Google Drive 자동화 Zap 완성
+      </li>
+      <li>
+        <div class="check-icon">✓</div>
+        파일 생성 테스트 완료 및 Zap 활성화
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<footer class="footer">
+  kom-automation · eunnwk.github.io/docs · 2026.06.03
+</footer>
+
+</body>
+</html>
