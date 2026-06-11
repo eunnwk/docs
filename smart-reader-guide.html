@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-S48E3LQX7Q"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-S48E3LQX7Q');
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>txt/md 스마트 리더기 개발 가이드북</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #17171e;
+      --surface2: #1e1e28;
+      --border: #2a2a38;
+      --accent: #5b9dff;
+      --accent2: #7c6af7;
+      --accent3: #4ecdc4;
+      --text: #e8e8f0;
+      --text-muted: #7a7a9a;
+      --success: #4ecdc4;
+      --warning: #f5b942;
+      --code-bg: #12121a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f0f13 0%, #141f2e 50%, #0f1320 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 40px 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(91,157,255,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: 200px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(124,106,247,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(91,157,255,0.15);
+      border: 1px solid rgba(91,157,255,0.3);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 38px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #e8e8f0 0%, #a8a8cc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-sub {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    .platform-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .platform-tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .platform-tag.highlight {
+      border-color: rgba(91,157,255,0.4);
+      color: var(--accent);
+    }
+
+    /* Main content */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* Section */
+    .section {
+      margin-top: 60px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 26px;
+      color: var(--text);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Recommend box */
+    .recommend-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 32px;
+    }
+
+    .recommend-box h3 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .recommend-list {
+      list-style: none;
+    }
+
+    .recommend-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(42,42,56,0.5);
+    }
+
+    .recommend-list li:last-child { border-bottom: none; }
+
+    .recommend-list li::before {
+      content: '•';
+      color: var(--accent);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Step card */
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .step-card:hover {
+      border-color: rgba(91,157,255,0.3);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #3d6fd1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 500;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .step-body {
+      padding: 0 24px 20px 72px;
+    }
+
+    .step-body p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .step-body strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .step-body a {
+      color: var(--accent2);
+      text-decoration: none;
+    }
+
+    .step-body a:hover {
+      text-decoration: underline;
+    }
+
+    /* inline code */
+    code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--accent3);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+    }
+
+    /* Code block */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #c8c8e8;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .code-block.success {
+      border-left-color: var(--success);
+    }
+
+    .code-block.purple {
+      border-left-color: var(--accent2);
+    }
+
+    .code-block .cmt {
+      color: #5a6478;
+    }
+
+    /* Sub label */
+    .sub-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin: 20px 0 8px;
+    }
+
+    /* Sub steps */
+    .sub-steps {
+      list-style: none;
+      margin: 8px 0;
+    }
+
+    .sub-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(42,42,56,0.5);
+    }
+
+    .sub-steps li:last-child { border-bottom: none; }
+
+    .sub-steps li::before {
+      content: '→';
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 48px 0;
+    }
+
+    /* Tip callout */
+    .tip {
+      background: linear-gradient(135deg, rgba(245,185,66,0.08), rgba(124,106,247,0.04));
+      border: 1px solid rgba(245,185,66,0.25);
+      border-left: 3px solid var(--warning);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .tip strong {
+      color: var(--warning);
+      font-weight: 500;
+    }
+
+    /* Summary */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(91,157,255,0.08), rgba(124,106,247,0.05));
+      border: 1px solid rgba(91,157,255,0.2);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-top: 48px;
+    }
+
+    .summary-box h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .summary-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .summary-box strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header { padding: 40px 20px; }
+      .header h1 { font-size: 28px; }
+      .container { padding: 0 20px 60px; }
+      .step-body { padding-left: 24px; }
+      .footer { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="badge">Web App Guide · 2026.06.11</div>
+    <h1>txt/md 스마트 리더기<br>개발 가이드북</h1>
+    <p class="header-sub">비전공자도 쉽게 이해하는 웹앱 제작 및 관리 전체 과정</p>
+
+    <div class="platform-tags">
+      <div class="platform-tag highlight">React</div>
+      <div class="platform-tag highlight">Cursor</div>
+      <div class="platform-tag">GitHub</div>
+      <div class="platform-tag">Git</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 개요 -->
+  <div class="recommend-box">
+    <h3>이 가이드가 만드는 것</h3>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">복잡한 <strong style="color:var(--text);font-weight:500;">'편집(수정)' 기능은 과감히 제외</strong>하고, 사용자가 글을 읽는 데 집중할 수 있도록 다음 기능만 넣은 읽기 전용 뷰어입니다.</p>
+    <ul class="recommend-list">
+      <li>txt / md 파일 저장</li>
+      <li>밑줄(하이라이트) — 텍스트를 드래그하면 표시</li>
+      <li>이어읽기 — 스크롤 위치 기억</li>
+      <li>공유</li>
+    </ul>
+  </div>
+
+  <!-- 이정표 1 -->
+  <div class="section">
+    <div class="section-label">Milestone 01</div>
+    <div class="section-title">프로젝트 기획 및 준비 (PRD 작성과 환경 구축)</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">기능의 범위 정하기 (기획)</div>
+      </div>
+      <div class="step-body">
+        <p>무작정 코딩을 시작하면 배가 산으로 갑니다. 개발할 기능의 명확한 선을 긋는 작업입니다. 이번 프로젝트에서는 복잡한 <strong>'편집(수정)' 기능은 과감히 제외</strong>하고, <strong>'저장, 밑줄(하이라이트), 이어읽기, 공유'</strong> 기능만 넣기로 약속했습니다.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">리액트(React) 방 만들기</div>
+      </div>
+      <div class="step-body">
+        <p>리액트는 요즘 웹사이트를 만들 때 가장 많이 쓰는 '조립식 건물 자재'입니다. 아래 명령어로 리더기 웹앱을 위한 빈 방(폴더)과 기초 뼈대를 자동으로 짓습니다.</p>
+        <div class="code-block">npx create-react-app smart-reader</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">필요한 부품(라이브러리) 설치하기</div>
+      </div>
+      <div class="step-body">
+        <p>빈 방에 가구와 가전제품을 들여놓는 과정입니다. <code>npm install</code> 명령어로 두 가지 핵심 부품을 설치합니다.</p>
+        <ul class="sub-steps">
+          <li><strong>lucide-react</strong> — 돋보기·책갈피·공유 모양의 고품질 아이콘 부품</li>
+          <li><strong>react-markdown</strong> — 마크다운(<code>.md</code>)의 특수기호(#, **, -)를 예쁜 글씨/표로 바꿔주는 번역기 부품</li>
+        </ul>
+        <div class="code-block">npm install lucide-react react-markdown</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이정표 2 -->
+  <div class="section">
+    <div class="section-label">Milestone 02</div>
+    <div class="section-title">Cursor 에디터를 통한 프로토타입 제작</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <div class="step-title">Cursor 에디터 켜고 방 열기</div>
+      </div>
+      <div class="step-body">
+        <p>메모장 같은 코드 편집 프로그램인 'Cursor'를 실행한 뒤, 아까 만든 <code>smart-reader</code> 폴더를 엽니다. 터미널에 <code>code .</code>을 치면 현재 위치에서 바로 Cursor가 열립니다.</p>
+        <div class="code-block">cd smart-reader
+code .</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">5</div>
+        <div class="step-title">AI 작가(Composer)에게 코딩 주문하기</div>
+      </div>
+      <div class="step-body">
+        <p>Cursor의 핵심 기능인 AI 작가(Composer)를 깨우는 작업입니다. <code>Cmd + I</code> (윈도우는 <code>Ctrl + I</code>)를 누르면 AI 대화창이 뜹니다. 여기에 아래처럼 주문서를 넣습니다.</p>
+        <div class="code-block purple">텍스트를 드래그하면 하이라이트가 쳐지고,
+스크롤 위치를 기억하는
+읽기 전용 뷰어를 만들어줘.</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">6</div>
+        <div class="step-title">AI가 짠 코드 수락하고 확인하기</div>
+      </div>
+      <div class="step-body">
+        <p>AI가 작성해 준 코드를 검토하고 <code>Accept(수락)</code> 버튼을 눌러 실제 <code>src/App.js</code> 파일에 덮어씌웁니다. 그 후 아래 명령으로 내 컴퓨터 안에 임시 웹서버를 켜고 브라우저 화면이 제대로 뜨는지 눈으로 확인합니다.</p>
+        <div class="code-block success">npm start</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이정표 3 -->
+  <div class="section">
+    <div class="section-label">Milestone 03</div>
+    <div class="section-title">깃허브(GitHub)에 안전하게 대피 및 퇴근하기</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">7</div>
+        <div class="step-title">깃허브에 온라인 보관함 만들기</div>
+      </div>
+      <div class="step-body">
+        <p>컴퓨터가 고장 나거나 다른 장소에서 일할 때를 대비해, 인터넷 세상(GitHub.com)에 프로젝트 전용 안전 금고(Repository)를 하나 개설하고 금고 주소를 복사해 둡니다.</p>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">8</div>
+        <div class="step-title">내 컴퓨터와 금고 연결하고 첫 업로드하기</div>
+      </div>
+      <div class="step-body">
+        <p>내 컴퓨터의 코드를 포장해서 방금 만든 인터넷 금고로 보내는 과정입니다. 터미널에 아래 명령어들을 순서대로 입력합니다.</p>
+        <div class="code-block">git init                            <span class="cmt"># 1. 이 폴더에서 버전 관리(Git) 시작 선언</span>
+git add .                           <span class="cmt"># 2. 모든 파일을 업로드 장바구니에 담기</span>
+git commit -m "feat: 첫 프로토타입"  <span class="cmt"># 3. 꼬리표를 달아 상자에 포장</span>
+git branch -M main                  <span class="cmt"># 4. 메인 브랜치 이름을 main으로 통일</span>
+git remote add origin [금고주소]     <span class="cmt"># 5. 내 컴퓨터와 깃허브 금고 연결</span>
+git push -u origin main             <span class="cmt"># 6. 금고 안으로 최종 업로드!</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 이정표 4 -->
+  <div class="section">
+    <div class="section-label">Milestone 04</div>
+    <div class="section-title">다음 작업 이어하기 (출근 루틴)</div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">9</div>
+        <div class="step-title">다음 날 같은 컴퓨터에서 이어서 할 때</div>
+      </div>
+      <div class="step-body">
+        <p>어제 하던 컴퓨터를 다시 켠 경우, 코드가 그대로 남아있으므로 복잡한 연결 과정이 필요 없습니다. Cursor를 켜고 아래 명령으로 화면을 띄운 뒤 바로 코딩을 시작합니다.</p>
+        <div class="code-block">npm start</div>
+        <div class="sub-label">작업이 끝나 오늘 분량을 깃허브에 누적 저장할 때 — 딱 3줄</div>
+        <div class="code-block">git add .
+git commit -m "style: 디자인 수정"
+git push</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">10</div>
+        <div class="step-title">아예 다른 새 컴퓨터에서 이어서 할 때</div>
+      </div>
+      <div class="step-body">
+        <p>노트북을 새로 샀거나 카페 컴퓨터에서 작업할 때입니다. 깃허브 금고에 코드가 보관되어 있으므로 몸만 이동하면 됩니다.</p>
+        <div class="code-block">git clone [내 깃허브 금고 주소]   <span class="cmt"># 1. 코드 통째로 다운로드</span>
+cd smart-reader                 <span class="cmt"># 2. 다운로드된 폴더로 들어가기</span>
+npm install                     <span class="cmt"># 3. 깃허브에 안 올렸던 부품들 자동 재설치</span>
+npm start                       <span class="cmt"># 4. 웹 화면 켜고 이어서 작업</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시니어 한마디 -->
+  <div class="tip">
+    <strong>💡 시니어 개발자의 한마디</strong><br>
+    비전공자분들이 개발을 포기하는 가장 큰 이유는 코딩 문법이 아니라, 이러한 '파일 관리'와 '깃허브 업로드' 단계에서 에러가 났을 때 해결 방법을 모르기 때문입니다. 이 문서의 순서대로만 움직이면 소중한 코드를 잃어버리는 일 없이 안전하게 개발을 이어 나갈 수 있습니다!
+  </div>
+
+  <!-- 핵심 요약 -->
+  <div class="summary-box">
+    <h3>핵심</h3>
+    <p>기능은 <strong>읽기에 필요한 것만</strong> — 저장·하이라이트·이어읽기·공유.<br>코드는 <strong>매번 깃허브에 누적 저장</strong>해서 어디서든 이어 작업.</p>
+    <p style="margin-top: 12px;">기획 → Cursor로 제작 → 깃허브 백업 → 다음 날 이어하기. 이 루틴만 지키면 비전공자도 끝까지 완주할 수 있다.</p>
+  </div>
+
+</div>
+
+<footer class="footer">
+  smart-reader · eunnwk.github.io/docs · 2026.06.11
+</footer>
+
+</body>
+</html>
