@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code × Video Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0D1117;
+    --bg2:       #161B22;
+    --bg3:       #1C2330;
+    --border:    #2A3240;
+    --teal:      #00C9A7;
+    --teal-dim:  rgba(0,201,167,0.12);
+    --amber:     #F0A500;
+    --red:       #FF6B6B;
+    --text:      #F0EDE6;
+    --muted:     #8B949E;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 7rem 0 5rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -10%;
+    width: 60%;
+    height: 160%;
+    background: radial-gradient(ellipse, rgba(0,201,167,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--teal);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 span { color: var(--teal); }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+  }
+  .tag.accent { border-color: var(--teal); color: var(--teal); }
+
+  /* ── PIPELINE VIZ ── */
+  .pipeline-wrap {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pipeline-scroll {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+  .pipeline-scroll::-webkit-scrollbar { height: 3px; }
+  .pipeline-scroll::-webkit-scrollbar-track { background: var(--bg2); }
+  .pipeline-scroll::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .pipe-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 96px;
+    gap: 8px;
+  }
+  .pipe-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .pipe-node:hover .pipe-icon {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+  }
+  .pipe-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .pipe-arrow {
+    flex-shrink: 0;
+    color: var(--border);
+    font-size: 18px;
+    margin: 0 2px;
+    padding-bottom: 20px;
+  }
+  .output-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--teal);
+  }
+  .output-badge::before { content: '→'; }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--teal);
+    flex-shrink: 0;
+  }
+  .section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .section p { color: #C9D1D9; margin-bottom: 1rem; line-height: 1.8; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--teal);
+    background: var(--teal-dim);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+  .callout strong { color: var(--teal); }
+  .callout-amber {
+    border-left-color: var(--amber);
+    background: rgba(240,165,0,0.08);
+  }
+  .callout-amber strong { color: var(--amber); }
+
+  /* ── BENEFIT CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--teal); }
+  .card-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+  .card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .card p { font-size: 0.85rem; color: var(--muted); margin: 0; line-height: 1.6; }
+
+  /* ── SCENARIO ── */
+  .scenario {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+  .scenario-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .scenario h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .scenario.after { border-color: var(--teal); }
+  .scenario.after .scenario-label { color: var(--teal); }
+
+  /* ── STEP GUIDE ── */
+  .step-list { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
+  .step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 1.25rem;
+    position: relative;
+  }
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 48px;
+    bottom: -1.5rem;
+    width: 2px;
+    background: var(--border);
+  }
+  .step-num {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--teal);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-body { padding-top: 10px; }
+  .step-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .step-what {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+  .step-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 0.5rem;
+  }
+
+  /* ── CODE ── */
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #A8D8C8;
+  }
+  .cmd { color: #79C0FF; }
+  .comment { color: #555E6A; }
+
+  /* ── FILE TREE ── */
+  .file-tree {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 2;
+    color: #A8D8C8;
+  }
+  .file-tree .dir { color: #79C0FF; }
+  .file-tree .special { color: var(--teal); font-weight: 600; }
+  .file-tree .comment2 { color: var(--muted); }
+
+  /* ── FIGMA STEPS ── */
+  .figma-steps { counter-reset: figma; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+  .figma-step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    counter-increment: figma;
+    position: relative;
+    padding-left: 3.5rem;
+  }
+  .figma-step::before {
+    content: counter(figma);
+    position: absolute;
+    left: 1rem;
+    top: 1.1rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+  }
+  .figma-step h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .figma-step p { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.75rem; }
+
+  /* ── SUMMARY ── */
+  .summary-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+  .summary-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: #C9D1D9;
+  }
+  .summary-item::before {
+    content: '✓';
+    color: var(--teal);
+    font-family: var(--mono);
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 3rem 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .container { padding: 0 1.25rem; }
+    .hero { padding: 4rem 0 3rem; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .step { grid-template-columns: 40px 1fr; }
+    .step-num { width: 40px; height: 40px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="container">
+  <section class="hero">
+    <div class="hero-eyebrow">// notsimple.net · Hermes CONTENT vertical</div>
+    <h1>Claude Code<br><span>× Video Pipeline</span></h1>
+    <p class="hero-sub">영상 편집 소프트웨어 없이, 코드와 JSON으로 완성본을 만드는 법. 단계별 실습 가이드.</p>
+    <div class="hero-tags">
+      <span class="tag accent">Whisper</span>
+      <span class="tag accent">ffmpeg</span>
+      <span class="tag accent">Remotion</span>
+      <span class="tag accent">Figma MCP</span>
+      <span class="tag">Claude Code</span>
+      <span class="tag">Python</span>
+      <span class="tag">LUT</span>
+    </div>
+  </section>
+</div>
+
+<!-- PIPELINE VIZ -->
+<div class="container">
+  <div class="pipeline-wrap">
+    <div class="pipeline-scroll">
+      <div class="pipe-node"><div class="pipe-icon">🎬</div><div class="pipe-label">원본<br>영상</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">📝</div><div class="pipe-label">트랜스<br>크립션</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">🤖</div><div class="pipe-label">샷 선택<br>JSON</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">✂️</div><div class="pipe-label">ffmpeg<br>컷팅</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">🎨</div><div class="pipe-label">컬러<br>그레이딩</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">⚛️</div><div class="pipe-label">Remotion<br>그래픽</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">🔗</div><div class="pipe-label">Figma<br>MCP</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node"><div class="pipe-icon">🎞️</div><div class="pipe-label">최종<br>렌더</div></div>
+    </div>
+    <div class="output-badge">모든 결정이 JSON에 기록됩니다 — 언제든 재현, 검증, 롤백 가능</div>
+  </div>
+</div>
+
+<!-- SECTION 1: WHY -->
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>왜 영상 편집 툴보다 이 방법인가</h2>
+    </div>
+    <p>Premiere, DaVinci Resolve는 강력하지만 <strong>블랙박스</strong>예요. 타임라인에 뭔가 올려두면 왜 그 컷을 골랐는지 어디에도 남지 않아요. 반면 이 파이프라인은 모든 결정이 텍스트 파일에 기록됩니다.</p>
+
+    <div class="callout">
+      <strong>핵심 차이</strong> — 편집 툴 타임라인은 시각적 블랙박스. 이 방식은 모든 결정이 <code>edit_plan.json</code>에 이유와 함께 기록되어 AI가 스스로 검증하고 재생성할 수 있어요.
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">♻️</div>
+        <h3>재현 가능</h3>
+        <p>edit_plan.json 하나만 있으면 언제든 똑같은 영상을 다시 만들 수 있어요. 1년 후에도요.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <h3>AI가 검증</h3>
+        <p><code>verified: false</code> 필드 덕분에 '미검증 컷 있어?' 물으면 Claude가 바로 찾아줘요.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔌</div>
+        <h3>자동화 연결</h3>
+        <p>JSON이니까 다른 도구와 자동으로 연결돼요. 파이프라인의 부품이 됩니다.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Git 버전 관리</h3>
+        <p>편집 히스토리를 diff로 추적할 수 있어요. '왜 이 컷인가'가 커밋 로그에 남아요.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SECTION 2: HERMES -->
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Hermes CONTENT Vertical에 연결되면</h2>
+    </div>
+    <p>지금 이 파이프라인의 각 단계는 독립적인 부품이에요. Hermes의 CONTENT vertical 오케스트레이터에 연결하면 이 모든 과정이 자동화됩니다.</p>
+
+    <div class="scenario">
+      <div class="scenario-label">// 지금 — 수동</div>
+      <h3>매번 직접 명령어 입력</h3>
+      <pre><code><span class="comment"># 지금은 이 모든 과정을 손으로 실행해요</span>
+나 → Whisper 실행 → Claude에 붙여넣기
+  → JSON 저장 → ffmpeg → 완성</code></pre>
+    </div>
+
+    <div class="scenario after">
+      <div class="scenario-label">// Hermes 연결 후 — 자동</div>
+      <h3>명령어 한 줄이면 끝</h3>
+      <pre><code><span class="cmd">/영상편집</span> video.mp4 <span class="comment">"Design as Data 런치 영상"</span></code></pre>
+      <p style="font-size: 0.9rem; color: #8B949E; margin-top: 0.75rem;">자동으로 순서대로 실행됩니다:</p>
+      <div class="summary-list">
+        <div class="summary-item">Whisper가 트랜스크립션 실행</div>
+        <div class="summary-item">Claude가 핵심 구간 선택 → edit_plan.json 생성</div>
+        <div class="summary-item">ffmpeg이 컷팅 + LUT 적용</div>
+        <div class="summary-item">자막 합성</div>
+        <div class="summary-item">Slack으로 final_output.mp4 전송</div>
+      </div>
+    </div>
+
+    <div class="callout callout-amber" style="margin-top: 1.5rem;">
+      <strong>UX Talk 발표 영상 자동화 시나리오</strong> — 발표 끝나고 영상 파일 하나 드롭하면: 핵심 구간 추출 + Naver 블로그용 / Instagram 클립 / 풀버전 3가지를 동시 렌더링. 플랫폼별 크기 자동 조정까지.
+    </div>
+  </section>
+</div>
+
+<!-- SECTION 3: STEP GUIDE -->
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>단계별 실습 가이드</h2>
+    </div>
+    <p>아래 7단계를 순서대로 따라하면 영상 편집 소프트웨어 없이 완성본을 만들 수 있어요.</p>
+
+    <div class="callout" style="margin-bottom: 2rem;">
+      <strong>환경 준비</strong> — Python 3, ffmpeg, Node.js 설치 후 가상환경 만들기
+      <pre style="margin-top: 0.75rem;"><code>mkdir ~/fable-workflow && cd ~/fable-workflow
+python3 -m venv venv && source venv/bin/activate
+pip install openai-whisper</code></pre>
+    </div>
+
+    <div class="step-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">트랜스크립션 — 영상을 텍스트로 변환</div>
+          <div class="step-what">Whisper AI가 음성을 텍스트로 바꾸고 단어별 타임스탬프를 기록해요. 각 단어가 몇 초에 시작/끝나는지 알 수 있어요. 이 데이터가 전체 파이프라인의 기반입니다.</div>
+          <pre><code>whisper video.mp4 \
+  --output_format json \
+  --language ko \
+  --word_timestamps True \
+  --model small \
+  --output_dir .</code></pre>
+          <div class="step-note">출력: video.json — 모든 편집 결정의 출발점</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">샷 선택 & 편집 계획 JSON 생성</div>
+          <div class="step-what">Claude에게 트랜스크립트를 주고 '핵심 메시지 구간 TOP 5를 골라줘'라고 요청해요. Claude는 각 선택에 이유(reason)와 의도(intent)를 붙여 JSON으로 돌려줘요. 이게 편집의 설계도입니다.</div>
+          <pre><code><span class="comment">// edit_plan.json 구조</span>
+{
+  "project": "design_as_data_v1",
+  "cuts": [
+    {
+      "scene": 1,
+      "start": 112.0,
+      "end": 120.0,
+      "intent": "문제 제기",
+      "reason": "기존 방식의 한계를 구체적 예시로 설명",
+      "verified": false  <span class="comment">← AI 자동 검증 필드</span>
+    }
+  ]
+}</code></pre>
+          <div class="step-note">verified: false 필드 — Claude가 '미검증 컷 찾아줘' 하면 자동으로 플래그 세워요</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">ffmpeg 자동 컷팅</div>
+          <div class="step-what">edit_plan.json을 읽어서 원본 영상을 자동으로 잘라요. Python 스크립트가 JSON의 start/end 값을 읽고 ffmpeg 명령어를 자동 실행합니다. 직접 명령어를 입력할 필요가 없어요.</div>
+          <pre><code><span class="comment"># Claude가 생성한 컷팅 스크립트</span>
+import json, subprocess, os
+
+with open('edit_plan.json') as f:
+    plan = json.load(f)
+
+os.makedirs('cuts', exist_ok=True)
+for cut in plan['cuts']:
+    i = cut['scene']
+    subprocess.run([
+        'ffmpeg', '-i', 'video.mp4',
+        '-ss', str(cut['start']),
+        '-to', str(cut['end']),
+        '-c', 'copy', f'cuts/cut_{i:02d}.mp4'
+    ])</code></pre>
+          <div class="step-note">출력: cuts/cut_01.mp4 ~ cut_05.mp4</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">컬러 그레이딩 — 커스텀 LUT 생성 & 적용</div>
+          <div class="step-what">LUT(Look-Up Table)는 영상의 색감을 바꾸는 데이터 파일이에요. 여기선 Claude가 코드로 직접 .cube 파일을 작성해요. 프리셋이 아닌 나만의 색감을 만들 수 있어요.</div>
+          <pre><code><span class="comment"># .cube LUT 적용</span>
+ffmpeg -i cut_01.mp4 \
+  -vf "lut3d=luts/film_warm.cube" \
+  -c:a copy \
+  cut_01_graded.mp4</code></pre>
+          <div class="step-note">섀도우 청록 틴트 + 하이라이트 노란빛 + S-curve 필름 룩</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Remotion — React로 모션 그래픽스</div>
+          <div class="step-what">Remotion은 React 코드로 영상 그래픽을 만드는 도구예요. 자막과 타이틀 카드를 코드로 작성하면 프레임 단위로 타이밍을 제어할 수 있어요. 트랜스크립트 타임스탬프와 sync됩니다.</div>
+          <pre><code><span class="comment">// 자막 컴포넌트 예시</span>
+import { useCurrentFrame, interpolate } from "remotion";
+
+export const Subtitle = ({ text, intent }) => {
+  const frame = useCurrentFrame();
+  const opacity = interpolate(
+    frame, [0, 15, 75, 90], [0, 1, 1, 0]
+  );
+  return (
+    &lt;div style={{ opacity, position: "absolute", bottom: 80 }}&gt;
+      {text}
+    &lt;/div&gt;
+  );
+};</code></pre>
+          <div class="step-note">타임스탬프만 바꾸면 전체 타이밍 자동 조정</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">Figma MCP — 실시간 디자인 협업 루프</div>
+          <div class="step-what">Figma MCP를 Claude Code에 연결하면 디자이너가 Figma에서 색상/폰트를 수정할 때 Claude가 즉시 Remotion 컴포넌트 코드를 업데이트해요. 디자인 변경이 영상에 실시간 반영됩니다.</div>
+          <pre><code><span class="comment">// .mcp.json</span>
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp"],
+      "env": { "FIGMA_TOKEN": "your_token_here" }
+    }
+  }
+}</code></pre>
+          <div class="step-note">루프: Figma 수정 → Claude 감지 → 코드 업데이트 → 재렌더</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-title">최종 합성 & 렌더링</div>
+          <div class="step-what">컬러그레이딩된 컷들을 순서대로 이어붙이고 자막을 합성해요. concat_list.txt에 파일 순서를 적으면 ffmpeg이 하나의 완성본으로 합쳐줍니다.</div>
+          <pre><code><span class="comment"># concat_list.txt 생성 후 이어붙이기</span>
+ffmpeg -f concat -safe 0 \
+  -i concat_list.txt \
+  -c copy \
+  final_output.mp4</code></pre>
+          <div class="step-note">🎬 출력: final_output.mp4 — 완성!</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- SECTION 4: FIGMA MCP -->
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Figma MCP 연동 상세 가이드</h2>
+    </div>
+    <p>Step 5에서 Remotion 그래픽을 만들었다면, 다음은 Figma와 실시간으로 연결하는 거예요.</p>
+
+    <div class="figma-steps">
+      <div class="figma-step">
+        <h4>Figma Personal Access Token 발급</h4>
+        <p>Figma 우측 상단 프로필 → Settings → Account → Personal Access Tokens → Generate new token</p>
+        <pre><code><span class="comment"># 환경변수로 저장</span>
+export FIGMA_TOKEN="your_token_here"</code></pre>
+      </div>
+      <div class="figma-step">
+        <h4>Claude Code에 Figma MCP 서버 등록</h4>
+        <p>프로젝트 루트에 .mcp.json 파일 생성</p>
+        <pre><code>{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp"],
+      "env": { "FIGMA_TOKEN": "your_token_here" }
+    }
+  }
+}</code></pre>
+      </div>
+      <div class="figma-step">
+        <h4>Figma 파일 ID 확인 후 연결</h4>
+        <p>URL에서 파일 ID 추출: https://figma.com/file/<strong>ABC123</strong>/...</p>
+        <pre><code><span class="comment"># Claude Code에서 요청:</span>
+"Figma 파일 ABC123에서 색상 토큰 읽어서
+ Remotion Subtitle.tsx 컴포넌트에 반영해줘"</code></pre>
+      </div>
+      <div class="figma-step">
+        <h4>실시간 루프 체험</h4>
+        <p>Figma에서 색상 수정 → Claude Code가 변경사항 감지 → Remotion 컴포넌트 자동 업데이트 → npm run dev로 즉시 확인</p>
+        <div class="callout" style="margin-top: 0.5rem; font-size: 0.85rem;">
+          <strong>Hermes 연결 포인트</strong> — 이 패턴이 WORK vertical 오케스트레이터와 동일한 구조예요. 외부 도구 변경을 Claude가 감지해 코드를 자동 동기화하는 루프.
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SECTION 5: FILE TREE -->
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>완성된 프로젝트 구조</h2>
+    </div>
+    <div class="file-tree">
+<span class="dir">fable-workflow/</span>
+├── <span class="comment2">video.mp4</span>                    <span class="comment2">← 원본 영상</span>
+├── <span class="comment2">video.json</span>                   <span class="comment2">← 트랜스크립트 & 타임스탬프</span>
+├── <span class="special">edit_plan.json</span>               <span class="comment2">← 편집 계획 (근거 포함)</span>
+├── <span class="comment2">concat_list.txt</span>
+├── <span class="special">final_output.mp4</span>             <span class="comment2">← 완성본 🎬</span>
+│
+├── <span class="dir">luts/</span>
+│   └── <span class="comment2">film_warm.cube</span>           <span class="comment2">← 커스텀 LUT</span>
+│
+├── <span class="dir">cuts/</span>
+│   ├── <span class="comment2">cut_01.mp4 ~ cut_05.mp4</span>          <span class="comment2">← 원본 컷</span>
+│   └── <span class="comment2">cut_01_graded.mp4 ~ cut_05_graded.mp4</span>
+│
+├── <span class="dir">final_cuts/</span>
+│   └── <span class="comment2">cut_01_sub.mp4 ~ cut_05_sub.mp4</span>  <span class="comment2">← 자막 합성</span>
+│
+└── <span class="dir">motion-graphics/</span>             <span class="comment2">← Remotion 프로젝트</span>
+    └── <span class="dir">src/</span>
+        ├── <span class="comment2">Subtitle.tsx</span>         <span class="comment2">← 자막 컴포넌트</span>
+        └── <span class="comment2">Root.tsx</span>
+    </div>
+  </section>
+</div>
+
+<!-- SECTION 6: SUMMARY -->
+<div class="container">
+  <section class="section" style="border-bottom: none;">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>핵심 정리</h2>
+    </div>
+
+    <div class="callout">
+      <strong>한 줄 요약</strong> — 영상 편집 툴은 한 번 쓰고 끝이지만, 이 방식은 자동화 파이프라인의 부품이 됩니다. 오늘 만든 edit_plan.json이 Hermes와 연결될 때 진짜 힘을 발휘해요.
+    </div>
+
+    <div class="summary-list" style="margin-top: 1.5rem;">
+      <div class="summary-item">모든 편집 결정이 JSON에 기록 → AI가 스스로 검증하고 재생성 가능</div>
+      <div class="summary-item">텍스트/코드/JSON 기반 → Git 버전 관리, diff, 롤백 자유</div>
+      <div class="summary-item">Remotion = 코드로 된 모션 그래픽 → 타임스탬프만 바꾸면 자동 sync</div>
+      <div class="summary-item">Figma MCP = 디자인 변경이 코드에 실시간 반영</div>
+      <div class="summary-item">Hermes 연결 시 = 명령어 한 줄로 전체 파이프라인 자동 실행</div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="container">
+    notsimple.net &nbsp;·&nbsp; Hermes CONTENT vertical &nbsp;·&nbsp; Claude Code × Video Pipeline
+  </div>
+</footer>
+
+</body>
+</html>
