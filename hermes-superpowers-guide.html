@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes × Superpowers 학습 가이드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #16161d;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #7c6af7;
+    --accent-dim: #4a3fa8;
+    --accent-glow: rgba(124, 106, 247, 0.12);
+    --green: #4ade80;
+    --green-dim: rgba(74, 222, 128, 0.1);
+    --yellow: #fbbf24;
+    --yellow-dim: rgba(251, 191, 36, 0.1);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.1);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.1);
+    --text: #e2e2f0;
+    --text-muted: #7070a0;
+    --text-dim: #4a4a70;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 48px 0 40px;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,106,247,0.08) 0%, transparent 70%);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-glow);
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto 24px;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Section ── */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-child { border-bottom: none; }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .section-desc {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  /* ── Prerequisites ── */
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .prereq-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .prereq-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* ── Timeline / Phase cards ── */
+  .phases { display: flex; flex-direction: column; gap: 2px; }
+
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .phase-card:hover { border-color: var(--accent-dim); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .phase-num {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .phase-1 .phase-num { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .phase-2 .phase-num { background: rgba(124,106,247,0.15); color: var(--accent); }
+  .phase-3 .phase-num { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .phase-4 .phase-num { background: rgba(74,222,128,0.15); color: var(--green); }
+  .phase-5 .phase-num { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  .phase-title-group { flex: 1; }
+
+  .phase-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  .phase-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .phase-duration {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+
+  .phase-body {
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── What / Why / Do boxes ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-box {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
+  .info-box .label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .info-box.what .label { color: var(--blue); }
+  .info-box.why .label { color: var(--accent); }
+  .info-box.do .label { color: var(--green); }
+  .info-box.read .label { color: var(--yellow); }
+
+  .info-box ul { padding-left: 14px; }
+  .info-box li { margin-bottom: 4px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── OS Tabs ── */
+  .os-tabs { display: flex; gap: 4px; margin-top: 20px; margin-bottom: 0; }
+
+  .os-tab {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--text-muted);
+    background: var(--surface2);
+    transition: all 0.15s;
+  }
+
+  .os-tab.active {
+    color: var(--text);
+    background: var(--bg);
+    border-color: var(--border);
+  }
+
+  .os-content {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .os-panel { display: none; }
+  .os-panel.active { display: block; }
+
+  /* ── Code blocks ── */
+  .code-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .code-label span {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .copy-btn {
+    font-size: 10px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--accent); }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 16px 18px;
+    overflow-x: auto;
+    color: #c9c9e0;
+  }
+
+  pre .comment { color: var(--text-dim); }
+  pre .cmd { color: var(--green); }
+  pre .flag { color: var(--blue); }
+  pre .str { color: var(--yellow); }
+  pre .key { color: var(--accent); }
+
+  /* ── Checklist ── */
+  .checklist {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .checklist .check {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .checklist .check:hover { border-color: var(--accent); }
+  .checklist li.done .check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .checklist li.done .check::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+  .checklist li.done span { text-decoration: line-through; color: var(--text-dim); }
+
+  /* ── Goal badge ── */
+  .goal-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(124,106,247,0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  .goal-box::before { content: '🎯'; font-size: 16px; }
+
+  .goal-box strong { color: var(--accent); margin-right: 6px; }
+
+  /* ── Overview table ── */
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 24px;
+  }
+
+  .overview-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .overview-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  .overview-table tr:last-child td { border-bottom: none; }
+
+  .overview-table .phase-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .dot-ph { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  /* ── Links ── */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Pros/Cons ── */
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 600px) { .pros-cons { grid-template-columns: 1fr; } }
+
+  .pc-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    font-size: 13px;
+  }
+
+  .pc-box h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .pc-box.pros h4 { color: var(--green); }
+  .pc-box.cons h4 { color: var(--red); }
+
+  .pc-box ul { padding-left: 14px; }
+  .pc-box li { margin-bottom: 6px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── Skill map table ── */
+  .skill-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 20px;
+  }
+
+  .skill-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .skill-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: middle;
+  }
+
+  .skill-table tr:last-child td { border-bottom: none; }
+
+  .vertical-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .v-make { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .v-content { background: rgba(124,106,247,0.15); color: var(--accent); }
+  .v-work { background: rgba(74,222,128,0.15); color: var(--green); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--yellow);
+  }
+
+  /* ── Callout ── */
+  .callout {
+    background: var(--yellow-dim);
+    border-left: 3px solid var(--yellow);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
+
+  .callout strong { color: var(--yellow); }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+  /* ── Scroll progress ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: var(--accent);
+    z-index: 100;
+    transition: width 0.1s;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header>
+  <div class="container">
+    <div class="badge">Personal Study Guide</div>
+    <h1>Hermes <span>×</span> Superpowers</h1>
+    <p>Claude Code 기반 개인 AI 시스템 구축 단계별 학습 가이드</p>
+    <div class="header-meta">
+      <span class="meta-chip">🖥 macOS + Windows</span>
+      <span class="meta-chip">5개 Phase</span>
+      <span class="meta-chip">약 3~5주 과정</span>
+      <span class="meta-chip">2026.06 기준</span>
+    </div>
+  </div>
+</header>
+
+<!-- ───────── Overview ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Overview</div>
+    <h2>전체 로드맵</h2>
+    <p class="section-desc">각 Phase가 뭘 하는 단계인지, 완료하면 뭘 할 수 있는지 한눈에 봐요.</p>
+
+    <table class="overview-table">
+      <thead>
+        <tr>
+          <th>Phase</th>
+          <th>목표</th>
+          <th>완료 후 할 수 있는 것</th>
+          <th>기간</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="phase-tag"><span class="dot-ph" style="background:var(--blue)"></span>1 — 기본기</span></td>
+          <td>Claude Code 구조 이해</td>
+          <td>공식 문서 읽고 기본 CLI 사용</td>
+          <td>3~5일</td>
+        </tr>
+        <tr>
+          <td><span class="phase-tag"><span class="dot-ph" style="background:var(--accent)"></span>2 — Superpowers</span></td>
+          <td>7단계 워크플로우 체험</td>
+          <td>구조화된 방식으로 기능 개발 가능</td>
+          <td>3~5일</td>
+        </tr>
+        <tr>
+          <td><span class="phase-tag"><span class="dot-ph" style="background:var(--yellow)"></span>3 — CLAUDE.md</span></td>
+          <td>전역 컨텍스트 파일 정비</td>
+          <td>매 세션 일관된 행동 보장</td>
+          <td>2~3일</td>
+        </tr>
+        <tr>
+          <td><span class="phase-tag"><span class="dot-ph" style="background:var(--green)"></span>4 — Hermes 연동</span></td>
+          <td>버티컬별 커스텀 스킬 제작</td>
+          <td>MAKE/CONTENT/WORK 자동 라우팅</td>
+          <td>1주</td>
+        </tr>
+        <tr>
+          <td><span class="phase-tag"><span class="dot-ph" style="background:var(--red)"></span>5 — 자동화</span></td>
+          <td>Hooks + 파이프라인 완성</td>
+          <td>Slack→Claude→Obsidian 전자동</td>
+          <td>1주~</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────── Pros/Cons ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Why</div>
+    <h2>연동하면 뭐가 달라지나요?</h2>
+    <p class="section-desc">Hermes에 Superpowers를 붙이면 생기는 실질적인 변화</p>
+
+    <div class="pros-cons">
+      <div class="pc-box pros">
+        <h4>✅ 장점</h4>
+        <ul>
+          <li>트윗·블로그 등 콘텐츠 퀄리티가 매번 일정해짐</li>
+          <li>빠뜨리는 항목(CTA, SEO 키워드 등)이 자동으로 체크됨</li>
+          <li>Hermes 버티컬이 개념에서 실제 동작 시스템이 됨</li>
+          <li>장시간 자율 실행 가능 (2시간+ 드리프트 없이)</li>
+          <li>코드 작업 시 테스트→구현 순서가 강제되어 버그 감소</li>
+        </ul>
+      </div>
+      <div class="pc-box cons">
+        <h4>❌ 단점</h4>
+        <ul>
+          <li>짧은 작업도 브레인스토밍부터 시작해 느려질 수 있음</li>
+          <li>단계마다 토큰 소비 → Pro 한도 더 빨리 찰 수 있음</li>
+          <li>초기 SKILL.md 세팅이 손이 많이 감 (1~2일)</li>
+          <li>트윗 1개처럼 간단한 작업엔 오버엔지니어링</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>💡 현실적인 팁:</strong> Superpowers를 모든 작업에 쓰지 말고, 긴 블로그 포스트·코드 개발에만 적용하고 짧은 트윗 하나는 그냥 쓰세요.
+    </div>
+  </div>
+</section>
+
+<!-- ───────── Phase 1 ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Phase 1 · 3~5일</div>
+    <h2>Claude Code 기본기 다지기</h2>
+    <p class="section-desc">Claude Code가 어떻게 판단하고 동작하는지 감을 잡는 단계예요. 설치보다 <em>이해</em>가 핵심.</p>
+
+    <div class="phases">
+      <div class="phase-card phase-1">
+        <div class="phase-header">
+          <div class="phase-num">1</div>
+          <div class="phase-title-group">
+            <div class="phase-title">공식 문서 읽기</div>
+            <div class="phase-subtitle">전체 구조 파악</div>
+          </div>
+          <div class="phase-duration">Day 1~2</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-grid">
+            <div class="info-box what">
+              <div class="label">What — 뭘 하는 단계</div>
+              <ul>
+                <li>Claude Code 공식 문서를 순서대로 읽음</li>
+                <li>Overview → Skills → Subagents → Hooks 순서</li>
+              </ul>
+            </div>
+            <div class="info-box why">
+              <div class="label">Why — 왜 필요한가</div>
+              <ul>
+                <li>나중에 CLAUDE.md 쓸 때 문법을 알아야 함</li>
+                <li>Superpowers가 뭘 하는지 이해하려면 기반 필요</li>
+              </ul>
+            </div>
+          </div>
+          <div class="info-box do" style="margin-bottom:16px">
+            <div class="label">Do — 실제로 할 것</div>
+            <ul>
+              <li><a href="https://code.claude.com/docs/en/overview" target="_blank">code.claude.com/docs/en/overview</a> — Overview부터 읽기</li>
+              <li><a href="https://code.claude.com/docs/en/skills" target="_blank">Skills 섹션</a> 집중 — SKILL.md 문법 파악</li>
+              <li><a href="https://code.claude.com/docs/en/hooks" target="_blank">Hooks 섹션</a> 훑기 — Phase 5 때 다시 옴</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-1">
+        <div class="phase-header">
+          <div class="phase-num">2</div>
+          <div class="phase-title-group">
+            <div class="phase-title">기존 프로젝트에서 직접 써보기</div>
+            <div class="phase-subtitle">report-bot 또는 wanna-try 활용</div>
+          </div>
+          <div class="phase-duration">Day 2~5</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-grid">
+            <div class="info-box what">
+              <div class="label">What</div>
+              <ul>
+                <li>이미 있는 프로젝트를 Claude Code로 작업</li>
+                <li><code>/help</code> 커맨드로 기능 목록 탐색</li>
+              </ul>
+            </div>
+            <div class="info-box why">
+              <div class="label">Why</div>
+              <ul>
+                <li>새 프로젝트보다 익숙한 코드로 연습이 더 효율적</li>
+                <li>"어떻게 동작하는지" 실제로 느껴봐야 이해됨</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p1-mac')">🍎 macOS</button>
+            <button class="os-tab" onclick="switchTab(this, 'p1-win')">🪟 Windows</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p1-mac">
+              <div class="code-label"><span>Terminal</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># report-bot 프로젝트 폴더로 이동</span>
+<span class="cmd">cd</span> ~/Desktop/report-bot
+
+<span class="comment"># Claude Code 실행</span>
+<span class="cmd">claude</span>
+
+<span class="comment"># Claude Code 안에서</span>
+<span class="key">/help</span>          <span class="comment"># 사용 가능한 커맨드 목록</span>
+<span class="key">/status</span>        <span class="comment"># 현재 모델·설정 확인</span></pre>
+            </div>
+            <div class="os-panel" id="p1-win">
+              <div class="code-label"><span>PowerShell (LG Gram)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># kom-tank 또는 report-bot 폴더로 이동</span>
+<span class="cmd">cd</span> ~\kom-tank
+
+<span class="comment"># Claude Code 실행</span>
+<span class="cmd">claude</span>
+
+<span class="comment"># Claude Code 안에서</span>
+<span class="key">/help</span>          <span class="comment"># 사용 가능한 커맨드 목록</span>
+<span class="key">/status</span>        <span class="comment"># 현재 모델·설정 확인</span></pre>
+            </div>
+          </div>
+
+          <div class="goal-box">
+            <div><strong>Phase 1 완료 기준:</strong> <code>/help</code> 커맨드로 나오는 기능 절반 이상이 뭔지 이해됨. SKILL.md가 뭔지 설명할 수 있음.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── Phase 2 ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Phase 2 · 3~5일</div>
+    <h2>Superpowers 설치 + 7단계 직접 체험</h2>
+    <p class="section-desc">설치하고 실제로 7단계를 한 번 통으로 경험해보는 게 핵심이에요. "아, 이래서 쓰는 거구나" 체감이 목표.</p>
+
+    <div class="phases">
+      <div class="phase-card phase-2">
+        <div class="phase-header">
+          <div class="phase-num">1</div>
+          <div class="phase-title-group">
+            <div class="phase-title">Superpowers 설치</div>
+            <div class="phase-subtitle">MacBook + LG Gram 각각</div>
+          </div>
+          <div class="phase-duration">Day 1</div>
+        </div>
+        <div class="phase-body">
+          <div class="callout">
+            <strong>중요:</strong> 두 기기에 각각 설치해야 해요. 플러그인은 기기별로 독립적으로 동작해요.
+          </div>
+          <div class="os-tabs" style="margin-top:16px">
+            <button class="os-tab active" onclick="switchTab(this, 'p2-install-mac')">🍎 macOS (MacBook)</button>
+            <button class="os-tab" onclick="switchTab(this, 'p2-install-win')">🪟 Windows (LG Gram)</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p2-install-mac">
+              <div class="code-label"><span>Claude Code 안에서 실행</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># 공식 Anthropic 마켓플레이스에서 설치</span>
+<span class="key">/plugin install</span> superpowers<span class="flag">@</span>claude-plugins-official
+
+<span class="comment"># 설치 확인</span>
+<span class="key">/plugin list</span></pre>
+            </div>
+            <div class="os-panel" id="p2-install-win">
+              <div class="code-label"><span>Claude Code 안에서 실행 (PowerShell)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># LG Gram에서도 동일하게 실행</span>
+<span class="key">/plugin install</span> superpowers<span class="flag">@</span>claude-plugins-official
+
+<span class="comment"># 설치 확인</span>
+<span class="key">/plugin list</span>
+
+<span class="comment"># superpowers 가 목록에 보이면 성공</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-2">
+        <div class="phase-header">
+          <div class="phase-num">2</div>
+          <div class="phase-title-group">
+            <div class="phase-title">7단계 워크플로우 직접 경험</div>
+            <div class="phase-subtitle">작은 기능 하나로 전체 흐름 통과</div>
+          </div>
+          <div class="phase-duration">Day 2~4</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-grid">
+            <div class="info-box what">
+              <div class="label">What</div>
+              <ul>
+                <li>wanna-try 앱에 작은 기능 하나 추가 (예: 필터 기능)</li>
+                <li>7단계를 처음부터 끝까지 경험</li>
+              </ul>
+            </div>
+            <div class="info-box why">
+              <div class="label">Why</div>
+              <ul>
+                <li>읽는 것과 경험하는 건 완전히 다름</li>
+                <li>"이 단계가 왜 있지?"를 직접 느껴야 함</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p2-flow-mac')">🍎 macOS</button>
+            <button class="os-tab" onclick="switchTab(this, 'p2-flow-win')">🪟 Windows</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p2-flow-mac">
+              <div class="code-label"><span>wanna-try 프로젝트에서</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="cmd">cd</span> ~/path/to/wanna-try
+<span class="cmd">claude</span>
+
+<span class="comment"># Claude Code 안에서</span>
+<span class="key">/using-superpowers</span>
+
+<span class="comment"># 그 다음 자연어로 요청</span>
+<span class="str">"wanna-try 앱에 카테고리 필터 기능을 추가해줘"</span>
+
+<span class="comment"># 이후 7단계가 자동으로 진행됨
+# → brainstorming → worktree → plan → subagent → TDD → review → finish</span></pre>
+            </div>
+            <div class="os-panel" id="p2-flow-win">
+              <div class="code-label"><span>PowerShell</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="cmd">cd</span> ~\kom-tank  <span class="comment"># 또는 wanna-try 경로</span>
+<span class="cmd">claude</span>
+
+<span class="comment"># Claude Code 안에서</span>
+<span class="key">/using-superpowers</span>
+
+<span class="comment"># 자연어로 요청</span>
+<span class="str">"wanna-try 앱에 카테고리 필터 기능을 추가해줘"</span>
+
+<span class="comment"># 7단계 자동 진행 확인</span></pre>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <h3>7단계 각각 뭘 하는지</h3>
+          <table class="skill-table" style="margin-top:12px">
+            <thead>
+              <tr><th>#</th><th>단계명</th><th>이 단계에서 일어나는 일</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Brainstorm</td><td>"어떻게 만들까?" 요구사항 탐색, 설계 문서 생성. Claude가 먼저 질문함</td></tr>
+              <tr><td>2</td><td>Git Worktree</td><td>격리된 브랜치 자동 생성. main 브랜치가 오염되지 않음</td></tr>
+              <tr><td>3</td><td>Plan</td><td>2~5분 단위 태스크로 분해. 파일 경로·코드·검증 단계 포함</td></tr>
+              <tr><td>4</td><td>Subagent Dev</td><td>태스크별로 서브에이전트 투입. 2단계 리뷰(spec 준수 → 코드 품질)</td></tr>
+              <tr><td>5</td><td>TDD</td><td>테스트 먼저 작성 → 실패 확인 → 코드 작성 → 통과. 순서 절대 불변</td></tr>
+              <tr><td>6</td><td>Code Review</td><td>자동 코드 리뷰. Critical 이슈 발견 시 진행 차단</td></tr>
+              <tr><td>7</td><td>Finish</td><td>테스트 통과 확인 후 merge / PR open / 폐기 선택</td></tr>
+            </tbody>
+          </table>
+
+          <div class="goal-box">
+            <div><strong>Phase 2 완료 기준:</strong> 7단계를 한 번 통으로 경험함. "brainstorming이 없으면 어떤 문제가 생기는지" 말할 수 있음.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── Phase 3 ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Phase 3 · 2~3일</div>
+    <h2>CLAUDE.md 제대로 만들기</h2>
+    <p class="section-desc">Claude Code가 매 세션 일관되게 행동하려면 CLAUDE.md가 잘 짜여 있어야 해요. 지금 있는 파일을 점검하고 Hermes 구조에 맞게 정비해요.</p>
+
+    <div class="phases">
+      <div class="phase-card phase-3">
+        <div class="phase-header">
+          <div class="phase-num">1</div>
+          <div class="phase-title-group">
+            <div class="phase-title">현재 CLAUDE.md 점검</div>
+            <div class="phase-subtitle">불필요한 내용 제거, 구조 확인</div>
+          </div>
+          <div class="phase-duration">Day 1</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-box what" style="margin-bottom:16px">
+            <div class="label">What</div>
+            <ul>
+              <li>MacBook: <code>~/think-tank/CLAUDE.md</code> 열어보기</li>
+              <li>LG Gram: <code>~\kom-tank\CLAUDE.md</code> 열어보기</li>
+              <li>중복·오래된 내용 정리</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <strong>팁:</strong> Claude Code는 CLAUDE.md 상단에 있는 내용을 더 중요하게 봐요. 절대 규칙은 파일 맨 위에 놓으세요.
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-3">
+        <div class="phase-header">
+          <div class="phase-num">2</div>
+          <div class="phase-title-group">
+            <div class="phase-title">Hermes 구조 추가</div>
+            <div class="phase-subtitle">버티컬 라우팅 규칙 삽입</div>
+          </div>
+          <div class="phase-duration">Day 1~2</div>
+        </div>
+        <div class="phase-body">
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p3-claude-mac')">🍎 macOS CLAUDE.md</button>
+            <button class="os-tab" onclick="switchTab(this, 'p3-claude-win')">🪟 Windows CLAUDE.md</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p3-claude-mac">
+              <div class="code-label"><span>~/think-tank/CLAUDE.md 에 추가할 내용</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment">## TIER 1: HARD RULES — 절대 규칙</span>
+<span class="key">- 코드 작성 전 반드시 brainstorming 스킬 실행</span>
+<span class="key">- 테스트 없이 프로덕션 코드 커밋 금지</span>
+<span class="key">- 각 태스크는 2~5분 단위로 분해</span>
+
+<span class="comment">## TIER 2: Hermes 버티컬 라우팅</span>
+<span class="str">모든 요청은 아래 버티컬 중 하나로 분류 후 해당 SKILL.md 참조:</span>
+<span class="key">- MAKE:</span> 프롬프트 생성, 이미지, 창작물 제작
+<span class="key">- CONTENT:</span> 블로그, 트윗, 인스타, 콘텐츠 작성
+<span class="key">- WORK:</span> EUT 리포트, 회의록, 문서 자동화
+
+<span class="comment">## TIER 3: 프로젝트 컨텍스트</span>
+<span class="key">- report-bot:</span> ~/Desktop/report-bot/
+<span class="key">- wanna-try:</span> eunnwk/wanna-try (GitHub Pages)
+<span class="key">- notsimple.net:</span> 개인 사이트</pre>
+            </div>
+            <div class="os-panel" id="p3-claude-win">
+              <div class="code-label"><span>~\kom-tank\CLAUDE.md 에 추가할 내용</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment">## TIER 1: HARD RULES — 절대 규칙</span>
+<span class="key">- 코드 작성 전 반드시 brainstorming 스킬 실행</span>
+<span class="key">- 테스트 없이 프로덕션 코드 커밋 금지</span>
+<span class="key">- 각 태스크는 2~5분 단위로 분해</span>
+
+<span class="comment">## TIER 2: Hermes 버티컬 라우팅</span>
+<span class="str">모든 요청은 아래 버티컬 중 하나로 분류 후 해당 SKILL.md 참조:</span>
+<span class="key">- MAKE:</span> 프롬프트 생성, 이미지, 창작물 제작
+<span class="key">- CONTENT:</span> 블로그, 트윗, 인스타, 콘텐츠 작성
+<span class="key">- WORK:</span> EUT 리포트, 회의록, 문서 자동화
+
+<span class="comment">## TIER 3: 프로젝트 컨텍스트</span>
+<span class="key">- kom-tank:</span> ~\kom-tank\ (LG Gram Think Tank)
+<span class="key">- obsidian:</span> obsidian-komx2 vault
+<span class="key">- report-bot:</span> 회사 MacBook</pre>
+            </div>
+          </div>
+          <div class="goal-box">
+            <div><strong>Phase 3 완료 기준:</strong> Claude Code 새 세션 시작 시 Hermes 버티컬이 뭔지 인식하고, 규칙대로 행동함.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── Phase 4 ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Phase 4 · 1주</div>
+    <h2>커스텀 스킬 만들기 (Hermes 진짜 연동)</h2>
+    <p class="section-desc">이 단계부터 Hermes가 실제로 작동하는 시스템이 돼요. CONTENT 버티컬부터 만들고, WORK → MAKE 순서로 진행해요.</p>
+
+    <div class="phases">
+      <div class="phase-card phase-4">
+        <div class="phase-header">
+          <div class="phase-num">1</div>
+          <div class="phase-title-group">
+            <div class="phase-title">스킬 폴더 구조 만들기</div>
+            <div class="phase-subtitle">양쪽 기기에 동일하게</div>
+          </div>
+          <div class="phase-duration">Day 1</div>
+        </div>
+        <div class="phase-body">
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p4-struct-mac')">🍎 macOS</button>
+            <button class="os-tab" onclick="switchTab(this, 'p4-struct-win')">🪟 Windows</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p4-struct-mac">
+              <div class="code-label"><span>Terminal</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="cmd">mkdir</span> <span class="flag">-p</span> ~/think-tank/.claude/skills/MAKE
+<span class="cmd">mkdir</span> <span class="flag">-p</span> ~/think-tank/.claude/skills/CONTENT
+<span class="cmd">mkdir</span> <span class="flag">-p</span> ~/think-tank/.claude/skills/WORK
+
+<span class="comment"># 구조 확인</span>
+<span class="cmd">tree</span> ~/think-tank/.claude/</pre>
+            </div>
+            <div class="os-panel" id="p4-struct-win">
+              <div class="code-label"><span>PowerShell</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="cmd">New-Item</span> <span class="flag">-ItemType Directory</span> ~\kom-tank\.claude\skills\MAKE
+<span class="cmd">New-Item</span> <span class="flag">-ItemType Directory</span> ~\kom-tank\.claude\skills\CONTENT
+<span class="cmd">New-Item</span> <span class="flag">-ItemType Directory</span> ~\kom-tank\.claude\skills\WORK
+
+<span class="comment"># 구조 확인</span>
+<span class="cmd">tree</span> ~\kom-tank\.claude\ <span class="flag">/f</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-4">
+        <div class="phase-header">
+          <div class="phase-num">2</div>
+          <div class="phase-title-group">
+            <div class="phase-title">CONTENT 버티컬 스킬 작성</div>
+            <div class="phase-subtitle">트윗 + 블로그 포스트</div>
+          </div>
+          <div class="phase-duration">Day 1~3</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-grid">
+            <div class="info-box what">
+              <div class="label">What</div>
+              <ul>
+                <li>content-tweet.md — 자동화 연구소 트윗 스킬</li>
+                <li>content-naver-blog.md — 네이버 블로그 포스트 스킬</li>
+              </ul>
+            </div>
+            <div class="info-box do">
+              <div class="label">완료 후 할 수 있는 것</div>
+              <ul>
+                <li>"트윗 써줘" 하면 자동으로 톤 체크 → 분량 확인 → 완성</li>
+                <li>블로그 요청 시 구조 먼저 잡고 섹션별 작성</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p4-tweet-mac')">🍎 content-tweet.md</button>
+            <button class="os-tab" onclick="switchTab(this, 'p4-blog-mac')">📝 content-naver-blog.md</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p4-tweet-mac">
+              <div class="code-label"><span>.claude/skills/CONTENT/content-tweet.md</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="key">---</span>
+<span class="key">name:</span> content-tweet
+<span class="key">description:</span> 자동화 연구소 트윗 작성 요청 시 실행
+<span class="key">---</span>
+
+<span class="str">트윗 작성 시 반드시 이 순서를 따를 것:</span>
+
+<span class="cmd">1.</span> 목적 확인 (정보전달 / 공감 / 홍보 / 실험)
+<span class="cmd">2.</span> 자동화 연구소 톤 적용 (실용적, 비개발자 친화적)
+<span class="cmd">3.</span> 140자 이내 체크
+<span class="cmd">4.</span> CTA 포함 여부 결정
+<span class="cmd">5.</span> 초안 작성
+<span class="cmd">6.</span> 대안 1개 추가 제시</pre>
+            </div>
+            <div class="os-panel" id="p4-blog-mac">
+              <div class="code-label"><span>.claude/skills/CONTENT/content-naver-blog.md</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="key">---</span>
+<span class="key">name:</span> content-naver-blog
+<span class="key">description:</span> 네이버 블로그(komx3) 포스트 작성 요청 시 실행
+<span class="key">---</span>
+
+<span class="str">블로그 포스트 작성 시 반드시 이 순서를 따를 것:</span>
+
+<span class="cmd">1.</span> 타겟 독자 확인 (비개발자, 자동화 관심층)
+<span class="cmd">2.</span> SEO 키워드 3개 선정
+<span class="cmd">3.</span> 목차 구조 먼저 작성 후 승인 요청
+<span class="cmd">4.</span> 섹션별 작성 (한 번에 전체 X)
+<span class="cmd">5.</span> 대표 이미지 alt text 제안
+<span class="cmd">6.</span> 내부 링크 연결 포인트 표시</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-4">
+        <div class="phase-header">
+          <div class="phase-num">3</div>
+          <div class="phase-title-group">
+            <div class="phase-title">WORK 버티컬 스킬 작성</div>
+            <div class="phase-subtitle">EUT 리포트 + 회의록</div>
+          </div>
+          <div class="phase-duration">Day 3~5</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-box do" style="margin-bottom:16px">
+            <div class="label">완료 후 할 수 있는 것</div>
+            <ul>
+              <li>CSV 파일 주면 자동으로 EUT 리포트 구조로 분석</li>
+              <li>회의 메모 → Obsidian 형식 자동 정리</li>
+            </ul>
+          </div>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p4-report')">📊 work-eut-report.md</button>
+            <button class="os-tab" onclick="switchTab(this, 'p4-meeting')">📋 work-meeting.md</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p4-report">
+              <div class="code-label"><span>.claude/skills/WORK/work-eut-report.md</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="key">---</span>
+<span class="key">name:</span> work-eut-report
+<span class="key">description:</span> EUT팀 CSV 태스크 리포트 작성 요청 시 실행
+<span class="key">---</span>
+
+<span class="str">리포트 작성 시 반드시 이 순서를 따를 것:</span>
+
+<span class="cmd">1.</span> CSV 파일 구조 분석 (컬럼 파악)
+<span class="cmd">2.</span> 기간·담당자·상태 기준 집계
+<span class="cmd">3.</span> 주요 인사이트 3개 추출
+<span class="cmd">4.</span> report-bot 포맷에 맞게 출력
+<span class="cmd">5.</span> 슬랙 공유용 요약 버전 별도 제작</pre>
+            </div>
+            <div class="os-panel" id="p4-meeting">
+              <div class="code-label"><span>.claude/skills/WORK/work-meeting-refine.md</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="key">---</span>
+<span class="key">name:</span> work-meeting-refine
+<span class="key">description:</span> 회의 메모 → Obsidian 정리 요청 시 실행
+<span class="key">---</span>
+
+<span class="str">회의록 정리 시 반드시 이 순서를 따를 것:</span>
+
+<span class="cmd">1.</span> 날짜·참석자·주제 추출
+<span class="cmd">2.</span> 결정 사항 / 액션 아이템 분리
+<span class="cmd">3.</span> Obsidian 마크다운 포맷으로 변환
+<span class="cmd">4.</span> 태그 자동 부여 (#meeting #work #eut)
+<span class="cmd">5.</span> Inbox 폴더 저장 경로 제안</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-4">
+        <div class="phase-header">
+          <div class="phase-num">4</div>
+          <div class="phase-title-group">
+            <div class="phase-title">스킬 검증</div>
+            <div class="phase-subtitle">Superpowers writing-skills로 테스트</div>
+          </div>
+          <div class="phase-duration">Day 5~7</div>
+        </div>
+        <div class="phase-body">
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p4-verify-mac')">🍎 macOS</button>
+            <button class="os-tab" onclick="switchTab(this, 'p4-verify-win')">🪟 Windows</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p4-verify-mac">
+              <div class="code-label"><span>Claude Code 안에서</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># 스킬 검증 명령</span>
+<span class="key">/superpowers:writing-skills</span>
+
+<span class="comment"># 완료 후 실제로 트리거되는지 테스트</span>
+<span class="str">"자동화 연구소 계정에 올릴 트윗 써줘"</span>
+<span class="comment"># → content-tweet 스킬이 자동 실행되면 성공</span></pre>
+            </div>
+            <div class="os-panel" id="p4-verify-win">
+              <div class="code-label"><span>Claude Code 안에서 (PowerShell)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre><span class="comment"># 스킬 검증 명령</span>
+<span class="key">/superpowers:writing-skills</span>
+
+<span class="comment"># 완료 후 실제로 트리거되는지 테스트</span>
+<span class="str">"EUT팀 이번 주 리포트 작성해줘"</span>
+<span class="comment"># → work-eut-report 스킬이 자동 실행되면 성공</span></pre>
+            </div>
+          </div>
+          <div class="goal-box">
+            <div><strong>Phase 4 완료 기준:</strong> "트윗 써줘" 했을 때 CONTENT 스킬이 자동 트리거됨. Hermes 3개 버티컬 스킬이 모두 작동함.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 버티컬 스킬 매핑 표 -->
+    <div class="divider"></div>
+    <h3>버티컬별 스킬 전체 매핑</h3>
+    <table class="skill-table">
+      <thead>
+        <tr><th>버티컬</th><th>스킬 파일명</th><th>트리거 상황</th><th>완료 후 할 수 있는 것</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="vertical-tag v-make">MAKE</span></td>
+          <td><code>make-prompt-gen.md</code></td>
+          <td>미드저니 프롬프트 생성 요청</td>
+          <td>스타일/분위기 정리 후 구조화된 프롬프트 출력</td>
+        </tr>
+        <tr>
+          <td><span class="vertical-tag v-content">CONTENT</span></td>
+          <td><code>content-tweet.md</code></td>
+          <td>트윗 작성 요청</td>
+          <td>톤 체크 → CTA 포함 → 대안 제시까지 자동</td>
+        </tr>
+        <tr>
+          <td><span class="vertical-tag v-content">CONTENT</span></td>
+          <td><code>content-naver-blog.md</code></td>
+          <td>블로그 포스트 요청</td>
+          <td>SEO 키워드 선정부터 섹션별 작성까지</td>
+        </tr>
+        <tr>
+          <td><span class="vertical-tag v-work">WORK</span></td>
+          <td><code>work-eut-report.md</code></td>
+          <td>EUT 리포트 요청</td>
+          <td>CSV 분석 → 리포트 + 슬랙 요약 동시 출력</td>
+        </tr>
+        <tr>
+          <td><span class="vertical-tag v-work">WORK</span></td>
+          <td><code>work-meeting-refine.md</code></td>
+          <td>회의록 정리 요청</td>
+          <td>Obsidian 마크다운 + 태그 자동 생성</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────── Phase 5 ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Phase 5 · 1주~ (고급)</div>
+    <h2>Hooks + 자동화 루프 완성</h2>
+    <p class="section-desc">Phase 1~4를 완료한 후에 시작하는 고급 단계예요. Slack → Claude Code → Obsidian 파이프라인을 전자동으로 연결해요.</p>
+
+    <div class="phases">
+      <div class="phase-card phase-5">
+        <div class="phase-header">
+          <div class="phase-num">1</div>
+          <div class="phase-title-group">
+            <div class="phase-title">Session-start Hook 설정</div>
+            <div class="phase-subtitle">세션 시작 시 Hermes 컨텍스트 자동 로드</div>
+          </div>
+          <div class="phase-duration">Day 1~2</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-grid">
+            <div class="info-box what">
+              <div class="label">What</div>
+              <ul>
+                <li>Claude Code 켤 때마다 SOUL.md, CONTEXT.md 자동 로드</li>
+                <li>Hermes 버티컬 인식 상태로 시작</li>
+              </ul>
+            </div>
+            <div class="info-box do">
+              <div class="label">완료 후 할 수 있는 것</div>
+              <ul>
+                <li>"어제 어디까지 했지?" 없이 바로 작업 시작</li>
+                <li>매 세션 동일한 컨텍스트 보장</li>
+              </ul>
+            </div>
+          </div>
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchTab(this, 'p5-hook-mac')">🍎 macOS</button>
+            <button class="os-tab" onclick="switchTab(this, 'p5-hook-win')">🪟 Windows</button>
+          </div>
+          <div class="os-content">
+            <div class="os-panel active" id="p5-hook-mac">
+              <div class="code-label"><span>~/.claude/settings.json</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre>{
+  <span class="key">"hooks"</span>: {
+    <span class="key">"session_start"</span>: [
+      {
+        <span class="key">"command"</span>: <span class="str">"cat ~/think-tank/SOUL.md"</span>
+      },
+      {
+        <span class="key">"command"</span>: <span class="str">"cat ~/think-tank/CONTEXT.md"</span>
+      }
+    ]
+  }
+}</pre>
+            </div>
+            <div class="os-panel" id="p5-hook-win">
+              <div class="code-label"><span>~\.claude\settings.json (LG Gram)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+              <pre>{
+  <span class="key">"hooks"</span>: {
+    <span class="key">"session_start"</span>: [
+      {
+        <span class="key">"command"</span>: <span class="str">"type ~\\kom-tank\\SOUL.md"</span>
+      },
+      {
+        <span class="key">"command"</span>: <span class="str">"type ~\\kom-tank\\CONTEXT.md"</span>
+      }
+    ]
+  }
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card phase-5">
+        <div class="phase-header">
+          <div class="phase-num">2</div>
+          <div class="phase-title-group">
+            <div class="phase-title">Stop Hook — Obsidian 자동 로그</div>
+            <div class="phase-subtitle">작업 완료 시 자동 기록</div>
+          </div>
+          <div class="phase-duration">Day 3~5</div>
+        </div>
+        <div class="phase-body">
+          <div class="info-box what" style="margin-bottom:16px">
+            <div class="label">What — 완료 후 할 수 있는 것</div>
+            <ul>
+              <li>Claude Code 작업이 끝날 때마다 Obsidian Inbox에 로그 자동 생성</li>
+              <li>Slack → Zapier → Obsidian 파이프라인과 연결 가능</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <strong>참고:</strong> Hooks 상세 문법은 <a href="https://code.claude.com/docs/en/hooks" target="_blank">code.claude.com/docs/en/hooks</a> 에서 확인하세요. Phase 1에서 훑어봤던 섹션이에요.
+          </div>
+          <div class="goal-box">
+            <div><strong>Phase 5 완료 기준:</strong> Claude Code를 끄면 Obsidian에 오늘 작업 로그가 자동으로 생성됨. Slack 메시지 → Claude 처리 → Obsidian 저장까지 전자동.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── Checklist ───────── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow">Progress Tracker</div>
+    <h2>진행 체크리스트</h2>
+    <p class="section-desc">각 항목을 클릭해서 완료 표시할 수 있어요.</p>
+
+    <ul class="checklist" id="checklist">
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 1 ] code.claude.com/docs Overview 읽기</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 1 ] Skills 섹션 읽기 (SKILL.md 문법 파악)</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 1 ] 기존 프로젝트에서 /help 커맨드 실행</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 2 ] MacBook에 Superpowers 설치</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 2 ] LG Gram에 Superpowers 설치</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 2 ] /using-superpowers 로 7단계 1회 경험</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 3 ] 기존 CLAUDE.md 점검 및 정비</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 3 ] Hermes 버티컬 라우팅 규칙 추가</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 4 ] .claude/skills/ 폴더 구조 생성</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 4 ] content-tweet.md 작성 및 검증</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 4 ] content-naver-blog.md 작성 및 검증</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 4 ] work-eut-report.md 작성 및 검증</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 4 ] work-meeting-refine.md 작성 및 검증</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 5 ] Session-start Hook 설정</span></li>
+      <li onclick="toggleDone(this)"><div class="check"></div><span>[ Phase 5 ] Stop Hook → Obsidian 자동 로그 연결</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ───────── Footer ───────── -->
+<footer style="padding: 40px 0; text-align: center; border-top: 1px solid var(--border);">
+  <div class="container">
+    <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 12px;">Hermes × Superpowers Study Guide · 2026.06</p>
+    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; font-size:13px;">
+      <a href="https://code.claude.com/docs/en/overview" target="_blank">📖 Claude Code 공식 문서</a>
+      <a href="https://github.com/obra/superpowers" target="_blank">⚡ Superpowers GitHub</a>
+      <a href="https://github.com/shanraisshan/claude-code-best-practice" target="_blank">📚 Best Practices 모음</a>
+      <a href="https://flowkater.io/en/posts/2026-02-08-superpowers-introduction/" target="_blank">🇰🇷 한국어 Superpowers 소개</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── OS Tab switch ──
+  function switchTab(btn, panelId) {
+    const content = btn.closest('.os-content') || btn.parentElement.nextElementSibling;
+    const tabGroup = btn.parentElement;
+
+    tabGroup.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const targetPanel = document.getElementById(panelId);
+    if (!targetPanel) return;
+    const allPanels = targetPanel.parentElement.querySelectorAll('.os-panel');
+    allPanels.forEach(p => p.classList.remove('active'));
+    targetPanel.classList.add('active');
+  }
+
+  // ── Copy code ──
+  function copyCode(btn) {
+    const pre = btn.closest('.os-content, .code-label').parentElement?.querySelector('pre')
+              || btn.parentElement.nextElementSibling;
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    });
+  }
+
+  // ── Checklist toggle ──
+  function toggleDone(li) {
+    li.classList.toggle('done');
+    saveChecklist();
+  }
+
+  function saveChecklist() {
+    const items = document.querySelectorAll('#checklist li');
+    const state = Array.from(items).map(li => li.classList.contains('done'));
+    localStorage.setItem('hermes-checklist', JSON.stringify(state));
+  }
+
+  function loadChecklist() {
+    const saved = localStorage.getItem('hermes-checklist');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    const items = document.querySelectorAll('#checklist li');
+    items.forEach((li, i) => {
+      if (state[i]) li.classList.add('done');
+    });
+  }
+
+  // ── Scroll progress ──
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.body.scrollHeight - window.innerHeight;
+    const pct = total ? (scrolled / total * 100) : 0;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+
+  loadChecklist();
+</script>
+</body>
+</html>
