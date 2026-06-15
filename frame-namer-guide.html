@@ -520,6 +520,22 @@
 <div class="main">
   <div class="container">
 
+    <!-- ====== 시작 전 안내: 점(.) 접두사 ====== -->
+    <div class="callout tip" style="margin-bottom: 20px;">
+      <div class="callout-title">✦ <code>.claude</code>처럼 앞에 점을 붙이는 이유</div>
+      <p><code>.</code> 없이 <code>claude/skills</code>라고 만들면, 바탕화면(<code>figma-frame-namer</code>) 폴더를 열었을 때 <code>claude</code>라는 폴더가 아주 잘 보이고 그 안의 파일들도 쉽게 확인할 수 있다.</p>
+      <p>그럼에도 개발 도구(예: Claude Code, VS Code 등)들이 굳이 앞에 <code>.</code>을 붙여서 <em>숨김 폴더</em>로 만드는 이유는 다음과 같다.</p>
+      <ol>
+        <li><strong>작업 공간 깔끔하게 유지하기:</strong> 내가 직접 작성하는 메인 코드 파일(예: <code>PRD.md</code>) 외에, 프로그램이 내부적으로 쓰는 설정 파일이나 스킬 파일들을 눈에 안 보이게 숨겨서 복잡함을 줄이기 위함이다.</li>
+        <li><strong>실수 방지:</strong> 중요한 설정 폴더를 실수로 지우거나 이름을 바꾸는 일을 막기 위해 숨겨두는 것이다.</li>
+      </ol>
+      <p>💡 <strong>요약하자면</strong></p>
+      <ul>
+        <li><strong>숨겨진 게 답답하고 바로바로 탐색기에서 파일들을 보고 싶다면:</strong> 말한 대로 <code>.</code>을 빼고 <code>mkdir -p claude/skills</code>로 만들어도 된다.</li>
+        <li>다만, Claude Code 같은 AI 도구가 <code>.claude</code>라는 숨겨진 이름 약속(컨벤션)을 기준으로 작동하는 경우라면, 점(<code>.</code>)을 꼭 붙여주어야 AI가 해당 폴더를 제대로 인식할 수 있다.</li>
+      </ul>
+    </div>
+
     <!-- ====== 시작 전 안내 ====== -->
     <div class="callout tip" style="margin-bottom: 40px;">
       <div class="callout-title">✦ 시작 전 알아두기 — <code>.claude</code>가 아니라 그냥 <code>claude</code></div>
