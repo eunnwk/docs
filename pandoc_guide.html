@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandoc 3.10 설치 및 활용 가이드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:       #2563EB;
+    --blue-light: #EFF6FF;
+    --blue-mid:   #DBEAFE;
+    --blue-dark:  #1E40AF;
+    --slate:      #1E293B;
+    --slate-mid:  #475569;
+    --slate-light:#94A3B8;
+    --bg:         #F8FAFC;
+    --white:      #FFFFFF;
+    --border:     #E2E8F0;
+    --green:      #059669;
+    --green-bg:   #ECFDF5;
+    --green-border:#A7F3D0;
+    --orange:     #D97706;
+    --orange-bg:  #FFFBEB;
+    --orange-border:#FDE68A;
+    --code-bg:    #0F172A;
+    --code-text:  #93C5FD;
+    --tag-mac:    #7C3AED;
+    --tag-mac-bg: #F5F3FF;
+    --tag-win:    #0369A1;
+    --tag-win-bg: #E0F2FE;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    background: var(--bg);
+    color: var(--slate);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── Sidebar nav ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  nav {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 0;
+  }
+
+  .nav-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .nav-logo span { font-size: 13px; font-weight: 700; color: var(--blue); letter-spacing: .04em; text-transform: uppercase; }
+
+  nav ul { list-style: none; padding: 0 12px; }
+  nav li { margin: 2px 0; }
+  nav a {
+    display: block;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--slate-mid);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  nav a:hover, nav a.active { background: var(--blue-light); color: var(--blue); }
+  nav .nav-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--slate-light); padding: 16px 12px 6px; }
+
+  /* ── Main content ── */
+  main { flex: 1; min-width: 0; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 60%, #3B82F6 100%);
+    color: white;
+    padding: 72px 64px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.07) 0%, transparent 60%);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px; font-weight: 600; letter-spacing: .05em;
+    margin-bottom: 20px;
+  }
+  .hero h1 { font-size: 42px; font-weight: 700; line-height: 1.15; margin-bottom: 12px; }
+  .hero h1 span { color: #93C5FD; }
+  .hero p { font-size: 16px; color: rgba(255,255,255,.8); max-width: 520px; margin-bottom: 32px; }
+  .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-pill {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px; font-weight: 500;
+  }
+
+  /* ── Sections ── */
+  .content { padding: 56px 64px; max-width: 860px; }
+
+  section { margin-bottom: 64px; }
+
+  h2 {
+    font-size: 22px; font-weight: 700; color: var(--slate);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .section-num {
+    background: var(--blue); color: white;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .section-divider { height: 1px; background: var(--border); margin: 10px 0 24px; }
+
+  h3 { font-size: 15px; font-weight: 700; color: var(--slate); margin: 28px 0 10px; }
+
+  p { color: var(--slate-mid); margin-bottom: 12px; }
+
+  /* ── OS tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    padding: 2px 8px; border-radius: 4px; margin-right: 6px;
+    vertical-align: middle;
+  }
+  .tag-mac { background: var(--tag-mac-bg); color: var(--tag-mac); }
+  .tag-win { background: var(--tag-win-bg); color: var(--tag-win); }
+
+  /* ── Method cards ── */
+  .method-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: var(--white);
+  }
+  .method-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .method-card-header:hover { background: var(--blue-light); }
+  .method-title { font-size: 14px; font-weight: 700; color: var(--slate); }
+  .badge-recommend {
+    font-size: 11px; font-weight: 700; color: var(--green);
+    background: var(--green-bg); border: 1px solid var(--green-border);
+    border-radius: 20px; padding: 2px 10px;
+  }
+  .method-card-body { padding: 20px 24px; }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .code-lang { font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: .06em; }
+  .copy-btn {
+    font-size: 11px; font-weight: 600; color: #64748B;
+    background: #1E293B; border: 1px solid #334155;
+    border-radius: 4px; padding: 3px 10px;
+    cursor: pointer; transition: all .15s;
+  }
+  .copy-btn:hover { color: white; border-color: #60A5FA; }
+  .copy-btn.copied { color: #4ADE80; border-color: #4ADE80; }
+  pre { margin: 0; }
+  code {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--code-text);
+    line-height: 1.65;
+    white-space: pre;
+  }
+  code .comment { color: #64748B; }
+  code .cmd { color: #FDE68A; }
+  code .flag { color: #A5F3FC; }
+  code .path { color: #C4B5FD; }
+  code .string { color: #86EFAC; }
+
+  /* Inline code */
+  .inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; background: #EFF6FF; color: var(--blue-dark);
+    padding: 1px 6px; border-radius: 4px; border: 1px solid var(--blue-mid);
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px; padding: 14px 16px; margin: 16px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-content { flex: 1; }
+  .callout-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .callout-text { font-size: 13.5px; color: var(--slate-mid); line-height: 1.6; }
+  .callout.tip { background: var(--blue-light); border: 1px solid var(--blue-mid); }
+  .callout.tip .callout-title { color: var(--blue); }
+  .callout.success { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .callout.success .callout-title { color: var(--green); }
+  .callout.warning { background: var(--orange-bg); border: 1px solid var(--orange-border); }
+  .callout.warning .callout-title { color: var(--orange); }
+
+  /* ── Conversion table ── */
+  .convert-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .convert-table th {
+    background: var(--blue); color: white;
+    padding: 10px 16px; font-size: 13px; font-weight: 600;
+    text-align: left;
+  }
+  .convert-table th:first-child { border-radius: 8px 0 0 0; }
+  .convert-table th:last-child { border-radius: 0 8px 0 0; }
+  .convert-table td {
+    padding: 9px 16px; font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .convert-table tr:nth-child(even) td { background: #F8FAFC; }
+  .convert-table tr:hover td { background: var(--blue-light); }
+  .arrow-cell { color: var(--blue-light); font-weight: 700; text-align: center; background: var(--blue) !important; }
+
+  /* ── Example cards ── */
+  .example-grid { display: grid; gap: 16px; margin-top: 16px; }
+  .example-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; background: var(--white);
+  }
+  .example-card-label {
+    background: #F1F5F9;
+    padding: 8px 16px;
+    font-size: 12px; font-weight: 700; color: var(--slate-mid);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .example-card-body { padding: 16px; }
+  .example-card-desc { font-size: 13.5px; color: var(--slate-mid); margin-bottom: 10px; }
+
+  /* ── Steps ── */
+  .steps { counter-reset: step; list-style: none; padding: 0; }
+  .steps li {
+    counter-increment: step;
+    display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .steps li::before {
+    content: counter(step);
+    background: var(--blue); color: white;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .steps li p { margin: 0; font-size: 14px; color: var(--slate-mid); }
+
+  /* ── Option table ── */
+  .option-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  .option-table th { background: #F1F5F9; padding: 8px 14px; font-size: 12px; font-weight: 700; color: var(--slate-mid); text-align: left; border-bottom: 2px solid var(--border); }
+  .option-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .option-table tr:hover td { background: var(--blue-light); }
+
+  /* ── FAQ ── */
+  .faq-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; background: var(--white); }
+  .faq-q {
+    padding: 14px 18px; font-size: 14px; font-weight: 600; color: var(--slate);
+    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    transition: background .15s;
+  }
+  .faq-q:hover { background: var(--blue-light); }
+  .faq-q .chevron { transition: transform .2s; color: var(--slate-light); }
+  .faq-q.open .chevron { transform: rotate(180deg); }
+  .faq-a { display: none; padding: 0 18px 16px; color: var(--slate-mid); font-size: 13.5px; }
+  .faq-a.open { display: block; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--slate); color: rgba(255,255,255,.5);
+    text-align: center; padding: 28px;
+    font-size: 12.5px;
+  }
+  footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+  footer a:hover { color: white; }
+
+  /* ── Scrollbar ── */
+  nav::-webkit-scrollbar { width: 4px; }
+  nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    nav { width: 100%; height: auto; position: static; padding: 16px; border-right: none; border-bottom: 1px solid var(--border); }
+    nav ul { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav .nav-section { display: none; }
+    .hero { padding: 40px 24px; }
+    .hero h1 { font-size: 28px; }
+    .content { padding: 32px 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <nav id="sidebar">
+    <div class="nav-logo">
+      <span>📄 Pandoc 3.10</span>
+    </div>
+    <ul>
+      <li class="nav-section">소개</li>
+      <li><a href="#intro">Pandoc이란?</a></li>
+      <li><a href="#formats">지원 형식</a></li>
+      <li class="nav-section">설치</li>
+      <li><a href="#windows">Windows 설치</a></li>
+      <li><a href="#macos">macOS 설치</a></li>
+      <li><a href="#verify">설치 확인</a></li>
+      <li class="nav-section">사용법</li>
+      <li><a href="#basic">기본 사용법</a></li>
+      <li><a href="#examples">변환 예시</a></li>
+      <li><a href="#advanced">자동화 활용</a></li>
+      <li><a href="#options">유용한 옵션</a></li>
+      <li class="nav-section">도움말</li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#links">참고 링크</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">📦 Latest Release</div>
+      <h1>Pandoc <span>3.10</span><br>설치 및 활용 가이드</h1>
+      <p>지식 없이도 따라할 수 있는 단계별 안내서. Windows와 macOS 모두 지원합니다.</p>
+      <div class="hero-pills">
+        <span class="hero-pill">🪟 Windows</span>
+        <span class="hero-pill">🍎 macOS</span>
+        <span class="hero-pill">🔄 문서 변환</span>
+        <span class="hero-pill">⚡ 자동화 연동</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 1. Pandoc이란 -->
+      <section id="intro">
+        <h2><span class="section-num">1</span> Pandoc이란?</h2>
+        <div class="section-divider"></div>
+        <p>Pandoc은 다양한 문서 형식을 서로 변환해주는 <strong>무료 오픈소스 도구</strong>입니다. "문서계의 스위스 아미 나이프"라고 불릴 만큼 폭넓은 형식을 지원해요.</p>
+        <p>설치만 하면 터미널에서 명령어 한 줄로 변환이 완료됩니다. 예를 들어 Obsidian에서 작성한 Markdown 파일을 Word 문서(.docx)나 PDF로 즉시 바꿀 수 있습니다.</p>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <div class="callout-content">
+            <div class="callout-title">이런 분에게 추천해요</div>
+            <div class="callout-text">Obsidian / Markdown 노트를 Word로 제출해야 할 때 &nbsp;·&nbsp; Word 문서를 Obsidian으로 가져오고 싶을 때 &nbsp;·&nbsp; 자동화 파이프라인에서 문서 포맷을 통일하고 싶을 때</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 지원 형식 -->
+      <section id="formats">
+        <h2><span class="section-num">2</span> 지원 변환 형식</h2>
+        <div class="section-divider"></div>
+        <table class="convert-table">
+          <thead>
+            <tr><th>입력 형식</th><th class="arrow-cell">→</th><th>출력 형식 (예시)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Markdown (.md)</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>Word (.docx), PDF, HTML, EPUB</td></tr>
+            <tr><td>Word (.docx)</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>Markdown, HTML, PDF</td></tr>
+            <tr><td>HTML</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>Markdown, Word, PDF</td></tr>
+            <tr><td>LaTeX (.tex)</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>Word, HTML, PDF</td></tr>
+            <tr><td>Typst</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>PDF, HTML</td></tr>
+            <tr><td>EPUB</td><td class="arrow-cell" style="background:#EFF6FF!important;color:#2563EB;">→</td><td>Markdown, Word, HTML</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 3. Windows 설치 -->
+      <section id="windows">
+        <h2><span class="section-num">3</span> Windows 설치 방법 <span class="tag tag-win">Windows</span></h2>
+        <div class="section-divider"></div>
+        <p>3가지 방법 중 하나를 선택하세요. <strong>방법 A (Winget)를 가장 추천합니다.</strong></p>
+
+        <!-- 방법 A -->
+        <div class="method-card">
+          <div class="method-card-header" onclick="toggleCard(this)">
+            <span class="method-title">방법 A &nbsp;—&nbsp; Winget (명령어 한 줄)</span>
+            <span class="badge-recommend">✓ 추천</span>
+          </div>
+          <div class="method-card-body">
+            <p style="font-size:13.5px;">Windows 10 버전 1709 이상, Windows 11에서 바로 사용 가능합니다.</p>
+            <ol class="steps">
+              <li><p>키보드에서 <strong>Windows 키 + R</strong>을 누른 뒤 <span class="inline-code">powershell</span>을 입력하고 Enter를 누릅니다.</p></li>
+              <li><p>아래 명령어를 복사해서 붙여넣고 Enter를 누릅니다.</p>
+                <div class="code-block">
+                  <div class="code-block-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                  <pre><code><span class="cmd">winget</span> install --id JohnMacFarlane.Pandoc</code></pre>
+                </div>
+              </li>
+              <li><p>설치가 완료되면 PowerShell 창을 닫고 <strong>새로 열어주세요.</strong></p></li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- 방법 B -->
+        <div class="method-card">
+          <div class="method-card-header" onclick="toggleCard(this)">
+            <span class="method-title">방법 B &nbsp;—&nbsp; 설치 파일 직접 다운로드</span>
+          </div>
+          <div class="method-card-body">
+            <p style="font-size:13.5px;">명령어가 불편하거나 Winget이 없는 경우에 사용하세요.</p>
+            <ol class="steps">
+              <li><p>브라우저에서 <a href="https://github.com/jgm/pandoc/releases/tag/3.10" target="_blank" style="color:var(--blue);">https://github.com/jgm/pandoc/releases/tag/3.10</a> 으로 이동합니다.</p></li>
+              <li><p>페이지 아래 <strong>Assets</strong> 섹션에서 <span class="inline-code">pandoc-3.10-windows-x86_64.msi</span>를 클릭해 다운로드합니다.</p></li>
+              <li><p>다운로드된 .msi 파일을 더블클릭하여 설치합니다. '다음(Next)' 버튼만 계속 누르면 됩니다.</p></li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- 방법 C -->
+        <div class="method-card">
+          <div class="method-card-header" onclick="toggleCard(this)">
+            <span class="method-title">방법 C &nbsp;—&nbsp; Chocolatey</span>
+          </div>
+          <div class="method-card-body">
+            <p style="font-size:13.5px;">Chocolatey 패키지 매니저가 이미 설치되어 있는 경우에만 사용하세요.</p>
+            <div class="code-block">
+              <div class="code-block-header"><span class="code-lang">PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+              <pre><code><span class="cmd">choco</span> install pandoc</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. macOS 설치 -->
+      <section id="macos">
+        <h2><span class="section-num">4</span> macOS 설치 방법 <span class="tag tag-mac">macOS</span></h2>
+        <div class="section-divider"></div>
+        <p>2가지 방법 중 하나를 선택하세요. <strong>방법 A (Homebrew)를 가장 추천합니다.</strong></p>
+
+        <!-- 방법 A -->
+        <div class="method-card">
+          <div class="method-card-header" onclick="toggleCard(this)">
+            <span class="method-title">방법 A &nbsp;—&nbsp; Homebrew (가장 쉬움)</span>
+            <span class="badge-recommend">✓ 추천</span>
+          </div>
+          <div class="method-card-body">
+            <div class="callout warning">
+              <span class="callout-icon">📌</span>
+              <div class="callout-content">
+                <div class="callout-title">Homebrew가 없는 경우 — 먼저 설치하기</div>
+                <div class="callout-text">터미널에서 아래 명령어를 붙여넣고 Enter하세요. 설치 완료 후 아래 Pandoc 설치를 진행합니다.</div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-block-header"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+              <pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+            </div>
+            <h3>Pandoc 설치</h3>
+            <ol class="steps">
+              <li><p><strong>터미널(Terminal)</strong> 앱을 실행합니다. (Spotlight에서 'terminal' 검색)</p></li>
+              <li><p>아래 명령어를 입력합니다.</p>
+                <div class="code-block">
+                  <div class="code-block-header"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                  <pre><code><span class="cmd">brew</span> install pandoc</code></pre>
+                </div>
+              </li>
+            </ol>
+            <p style="font-size:13.5px;">이미 설치되어 있다면 업그레이드 명령어를 사용합니다.</p>
+            <div class="code-block">
+              <div class="code-block-header"><span class="code-lang">Terminal</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+              <pre><code><span class="cmd">brew</span> upgrade pandoc</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 방법 B -->
+        <div class="method-card">
+          <div class="method-card-header" onclick="toggleCard(this)">
+            <span class="method-title">방법 B &nbsp;—&nbsp; 설치 파일 직접 다운로드</span>
+          </div>
+          <div class="method-card-body">
+            <div class="callout tip">
+              <span class="callout-icon">❓</span>
+              <div class="callout-content">
+                <div class="callout-title">내 Mac이 Apple Silicon인지 Intel인지 확인하는 방법</div>
+                <div class="callout-text">화면 왼쪽 상단 🍎 클릭 → '이 Mac에 관하여' 선택 → '칩' 항목에 <strong>Apple M1/M2/M3/M4</strong> = Apple Silicon, <strong>Intel Core</strong> = Intel</div>
+              </div>
+            </div>
+            <ol class="steps">
+              <li><p><a href="https://github.com/jgm/pandoc/releases/tag/3.10" target="_blank" style="color:var(--blue);">릴리즈 페이지</a>로 이동합니다.</p></li>
+              <li><p>Assets 섹션에서 본인 Mac에 맞는 파일을 다운로드합니다.<br>
+                <span class="inline-code">pandoc-3.10-arm64-macOS.pkg</span> — Apple Silicon (M1/M2/M3/M4)<br>
+                <span class="inline-code">pandoc-3.10-x86_64-macOS.pkg</span> — Intel Mac
+              </p></li>
+              <li><p>다운로드된 .pkg 파일을 더블클릭하여 설치합니다.</p></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 설치 확인 -->
+      <section id="verify">
+        <h2><span class="section-num">5</span> 설치 확인</h2>
+        <div class="section-divider"></div>
+        <p>설치가 완료되면 터미널 / PowerShell에서 아래 명령어로 확인합니다.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+          <pre><code>pandoc --version</code></pre>
+        </div>
+        <div class="callout success">
+          <span class="callout-icon">✅</span>
+          <div class="callout-content">
+            <div class="callout-title">성공 시 출력 예시</div>
+            <div class="callout-text" style="font-family:'JetBrains Mono',monospace;font-size:13px;">pandoc 3.10<br>Compiled with pandoc-types 1.23.1, texmath 0.12.8.9...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 기본 사용법 -->
+      <section id="basic">
+        <h2><span class="section-num">6</span> 기본 사용법</h2>
+        <div class="section-divider"></div>
+        <p>Pandoc은 터미널 / PowerShell에서 아래 형식으로 사용합니다.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-lang">기본 형식</span></div>
+          <pre><code>pandoc  <span class="path">입력파일</span>  <span class="flag">-o</span>  <span class="path">출력파일</span></code></pre>
+        </div>
+        <p><span class="inline-code">-o</span>는 출력(output)의 약자입니다. 파일 확장자를 보고 형식을 자동으로 판단합니다.</p>
+      </section>
+
+      <!-- 7. 변환 예시 -->
+      <section id="examples">
+        <h2><span class="section-num">7</span> 변환 예시</h2>
+        <div class="section-divider"></div>
+
+        <div class="example-grid">
+
+          <div class="example-card">
+            <div class="example-card-label">① Markdown → Word</div>
+            <div class="example-card-body">
+              <p class="example-card-desc">Obsidian 노트나 .md 파일을 Word(.docx)로 변환할 때 사용합니다.</p>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                <pre><code><span class="comment"># 현재 폴더의 파일 변환</span>
+pandoc <span class="path">내문서.md</span> <span class="flag">-o</span> <span class="path">내문서.docx</span>
+
+<span class="comment"># 경로 지정 (Windows)</span>
+pandoc <span class="path">C:\Users\이름\Documents\노트.md</span> <span class="flag">-o</span> <span class="path">C:\Users\이름\Desktop\결과.docx</span>
+
+<span class="comment"># 경로 지정 (macOS)</span>
+pandoc <span class="path">~/Documents/노트.md</span> <span class="flag">-o</span> <span class="path">~/Desktop/결과.docx</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="example-card">
+            <div class="example-card-label">② Word → Markdown</div>
+            <div class="example-card-body">
+              <p class="example-card-desc">Word 파일을 Obsidian이나 Markdown 편집기로 가져올 때 사용합니다.</p>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                <pre><code>pandoc <span class="path">보고서.docx</span> <span class="flag">-o</span> <span class="path">보고서.md</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="example-card">
+            <div class="example-card-label">③ Markdown → HTML</div>
+            <div class="example-card-body">
+              <p class="example-card-desc">웹 페이지용 HTML 파일을 생성합니다. <span class="inline-code">-s</span> 옵션으로 완전한 독립 파일을 만들 수 있습니다.</p>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                <pre><code>pandoc <span class="path">문서.md</span> <span class="flag">-s</span> <span class="flag">-o</span> <span class="path">문서.html</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="example-card">
+            <div class="example-card-label">④ Markdown → PDF</div>
+            <div class="example-card-body">
+              <p class="example-card-desc">PDF 변환은 별도 도구가 필요합니다. 간단한 방법은 HTML로 변환 후 브라우저에서 인쇄 → PDF 저장을 이용하세요.</p>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                <pre><code><span class="comment"># HTML로 변환 후 브라우저에서 PDF 저장</span>
+pandoc <span class="path">문서.md</span> <span class="flag">-s</span> <span class="flag">-o</span> <span class="path">문서.html</span>
+
+<span class="comment"># wkhtmltopdf 설치 후 직접 PDF 변환</span>
+pandoc <span class="path">문서.md</span> <span class="flag">-o</span> <span class="path">문서.pdf</span> <span class="flag">--pdf-engine=</span><span class="string">wkhtmltopdf</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="example-card">
+            <div class="example-card-label">⑤ 여러 파일 합치기</div>
+            <div class="example-card-body">
+              <p class="example-card-desc">여러 Markdown 파일을 하나의 Word 문서로 합칩니다.</p>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+                <pre><code>pandoc <span class="path">1장.md</span> <span class="path">2장.md</span> <span class="path">3장.md</span> <span class="flag">-o</span> <span class="path">전체문서.docx</span></code></pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 8. 자동화 활용 -->
+      <section id="advanced">
+        <h2><span class="section-num">8</span> 자동화 파이프라인 활용</h2>
+        <div class="section-divider"></div>
+        <p>Pandoc은 Python 스크립트나 자동화 도구와 함께 사용하면 더욱 강력해집니다.</p>
+
+        <h3>Python 스크립트에서 호출하기</h3>
+        <p>report-bot 같은 자동화 스크립트에 문서 변환 단계를 추가할 수 있습니다.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-lang">Python</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+          <pre><code><span class="comment">import</span> subprocess
+
+<span class="comment"># Markdown 파일을 Word로 자동 변환</span>
+subprocess.run([
+    <span class="string">'pandoc'</span>,
+    <span class="string">'report.md'</span>,
+    <span class="string">'-o'</span>, <span class="string">'report.docx'</span>
+])</code></pre>
+        </div>
+
+        <h3>Obsidian 노트 → 배포용 문서</h3>
+        <p>Obsidian에서 작성한 노트나 보고서를 팀에 공유할 때 회사 템플릿 스타일을 그대로 적용할 수 있습니다.</p>
+        <div class="code-block">
+          <div class="code-block-header"><span class="code-lang">Terminal / PowerShell</span><button class="copy-btn" onclick="copyCode(this)">복사</button></div>
+          <pre><code>pandoc <span class="path">~/obsidian-vault/EUT-보고서.md</span> \
+  <span class="flag">-o</span> <span class="path">~/Desktop/EUT-보고서-배포용.docx</span> \
+  <span class="flag">--reference-doc=</span><span class="path">template.docx</span>
+
+<span class="comment"># --reference-doc 옵션으로 회사 템플릿(폰트, 색상 등) 적용 가능</span></code></pre>
+        </div>
+      </section>
+
+      <!-- 9. 유용한 옵션 -->
+      <section id="options">
+        <h2><span class="section-num">9</span> 유용한 옵션 모음</h2>
+        <div class="section-divider"></div>
+        <table class="option-table">
+          <thead><tr><th>옵션</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td><span class="inline-code">--toc</span></td><td>목차(Table of Contents) 자동 생성</td></tr>
+            <tr><td><span class="inline-code">-s</span> / <span class="inline-code">--standalone</span></td><td>완전한 독립 HTML 파일 생성 (CSS 포함)</td></tr>
+            <tr><td><span class="inline-code">--reference-doc=파일.docx</span></td><td>Word 문서 스타일 템플릿 적용</td></tr>
+            <tr><td><span class="inline-code">-f</span> / <span class="inline-code">-t</span></td><td>입력(-f) 및 출력(-t) 형식 명시</td></tr>
+            <tr><td><span class="inline-code">--wrap=none</span></td><td>자동 줄바꿈 없이 긴 줄 유지</td></tr>
+            <tr><td><span class="inline-code">--pdf-engine=wkhtmltopdf</span></td><td>PDF 변환 엔진 지정</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 10. FAQ -->
+      <section id="faq">
+        <h2><span class="section-num">10</span> FAQ / 문제 해결</h2>
+        <div class="section-divider"></div>
+
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            'pandoc' 명령어를 찾을 수 없다고 나와요
+            <span class="chevron">▾</span>
+          </div>
+          <div class="faq-a">
+            설치 후 터미널 / PowerShell을 <strong>새로 열었는지</strong> 확인하세요. 이미 열려있던 창에서는 인식이 안 될 수 있습니다. 그래도 안 된다면 PC를 재시작해보세요.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            PDF 변환이 안 돼요
+            <span class="chevron">▾</span>
+          </div>
+          <div class="faq-a">
+            PDF 변환은 별도 도구(LaTeX 또는 wkhtmltopdf)가 필요합니다. 가장 간단한 방법은 HTML로 변환한 후 브라우저의 <strong>'인쇄 → PDF 저장'</strong> 기능을 사용하는 것입니다.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            한글이 깨져요
+            <span class="chevron">▾</span>
+          </div>
+          <div class="faq-a">
+            HTML 변환 시 인코딩 옵션을 추가해보세요.
+            <div class="code-block" style="margin-top:10px;">
+              <pre><code>pandoc 문서.md -o 문서.html --metadata charset=utf-8</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            이미지가 안 보여요
+            <span class="chevron">▾</span>
+          </div>
+          <div class="faq-a">
+            이미지 경로가 상대 경로인 경우, <strong>파일이 있는 폴더로 이동한 뒤</strong> 명령어를 실행하세요.
+            <div class="code-block" style="margin-top:10px;">
+              <pre><code><span class="comment"># Windows</span>
+cd C:\Users\이름\Documents\내프로젝트
+pandoc 문서.md -o 문서.docx
+
+<span class="comment"># macOS</span>
+cd ~/Documents/내프로젝트
+pandoc 문서.md -o 문서.docx</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 11. 참고 링크 -->
+      <section id="links">
+        <h2><span class="section-num">11</span> 참고 링크</h2>
+        <div class="section-divider"></div>
+        <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:10px;">
+          <li><a href="https://github.com/jgm/pandoc/releases/tag/3.10" target="_blank" style="color:var(--blue);font-weight:600;">📦 공식 릴리즈 페이지 (3.10)</a></li>
+          <li><a href="https://pandoc.org/MANUAL.html" target="_blank" style="color:var(--blue);font-weight:600;">📖 공식 매뉴얼 (영문)</a></li>
+          <li><a href="https://brew.sh" target="_blank" style="color:var(--blue);font-weight:600;">🍺 Homebrew 공식 사이트</a></li>
+        </ul>
+      </section>
+
+    </div><!-- /content -->
+
+    <footer>
+      <p>EUT Team &nbsp;·&nbsp; Cyberlogitec &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; <a href="https://github.com/jgm/pandoc/releases/tag/3.10" target="_blank">Pandoc 3.10</a></p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Toggle method cards
+  function toggleCard(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.style.display === 'block';
+    body.style.display = isOpen ? 'none' : 'block';
+  }
+  // Open all cards by default
+  document.querySelectorAll('.method-card-body').forEach(b => b.style.display = 'block');
+
+  // Toggle FAQ
+  function toggleFaq(q) {
+    const a = q.nextElementSibling;
+    q.classList.toggle('open');
+    a.classList.toggle('open');
+  }
+
+  // Copy button
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = '✓ 복사됨';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // Active nav highlight on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }, { passive: true });
+</script>
+</body>
+</html>
