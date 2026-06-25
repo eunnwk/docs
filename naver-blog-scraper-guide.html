@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>네이버 블로그 아카이브 수집 가이드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg:        #0f0f10;
+    --surface:   #1a1a1d;
+    --border:    #2a2a2e;
+    --accent:    #03c75a;   /* 네이버 그린 */
+    --accent-dim:#025c2a;
+    --text:      #e8e8ea;
+    --muted:     #7a7a85;
+    --mac:       #57c8f2;
+    --win:       #74b9ff;
+    --warn:      #fdcb6e;
+    --code-bg:   #141416;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 56px 0 48px;
+    text-align: center;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .logo-badge span { font-size: 16px; }
+
+  h1 {
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ── 레이아웃 ── */
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin: 48px 0;
+  }
+
+  .toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .toc ol {
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .toc a:hover { color: var(--accent); }
+
+  /* ── 섹션 ── */
+  section {
+    margin-bottom: 64px;
+  }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* ── OS 배지 ── */
+  .os-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .os-mac { background: rgba(87,200,242,.15); color: var(--mac); border: 1px solid rgba(87,200,242,.3); }
+  .os-win { background: rgba(116,185,255,.15); color: var(--win); border: 1px solid rgba(116,185,255,.3); }
+  .os-both { background: rgba(3,199,90,.12); color: var(--accent); border: 1px solid rgba(3,199,90,.25); }
+
+  /* ── 스텝 카드 ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+
+  .step {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 0 20px;
+    position: relative;
+  }
+
+  .step:not(:last-child) .step-line {
+    position: absolute;
+    left: 23px;
+    top: 48px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--accent);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-body {
+    padding-bottom: 36px;
+  }
+
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+
+  /* ── 코드 블록 ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .code-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .copy-btn {
+    font-size: 11px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: color .15s;
+  }
+
+  .copy-btn:hover { color: var(--accent); }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 16px 18px;
+    overflow-x: auto;
+    color: #c8d0e0;
+  }
+
+  pre .c  { color: var(--muted); }           /* 주석 */
+  pre .k  { color: var(--accent); }          /* 키워드 */
+  pre .p  { color: var(--warn); }            /* 경로/플래그 */
+  pre .s  { color: #a29bfe; }                /* 문자열 */
+
+  /* ── 인포 박스 ── */
+  .info-box {
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .info-box.tip  { background: rgba(3,199,90,.08);  border: 1px solid rgba(3,199,90,.2); }
+  .info-box.warn { background: rgba(253,203,110,.08); border: 1px solid rgba(253,203,110,.25); }
+  .info-box.note { background: rgba(116,185,255,.08); border: 1px solid rgba(116,185,255,.2); }
+
+  .info-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── 테이블 ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 16px 0;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--accent);
+  }
+
+  /* ── 구조 트리 ── */
+  .tree {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    line-height: 2;
+    color: #c8d0e0;
+    margin: 12px 0;
+  }
+
+  .tree .hl { color: var(--accent); font-weight: 600; }
+  .tree .dim { color: var(--muted); }
+
+  /* ── 푸터 ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 80px;
+  }
+
+  footer strong { color: var(--text); }
+
+  /* ── 반응형 ── */
+  @media (max-width: 600px) {
+    .step { grid-template-columns: 36px 1fr; gap: 0 14px; }
+    .step-num { width: 36px; height: 36px; font-size: 12px; }
+    .step-line { left: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="logo-badge"><span>📗</span> komx3 · naver blog</div>
+    <h1>네이버 블로그<br><em>아카이브 수집 가이드</em></h1>
+    <p class="subtitle">새 글이 쌓일 때마다 Obsidian Markdown으로 추출하는 단계별 가이드</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-title">목차</div>
+    <ol>
+      <li><a href="#how">이 파이프라인이 하는 일</a></li>
+      <li><a href="#setup">최초 1회 환경 설정</a></li>
+      <li><a href="#run">새 글 추출하기 (정기 실행)</a></li>
+      <li><a href="#output">결과물 확인 및 Obsidian 연동</a></li>
+      <li><a href="#trouble">문제 해결</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. HOW IT WORKS -->
+  <section id="how">
+    <div class="section-eyebrow">Section 01</div>
+    <h2>이 파이프라인이 하는 일</h2>
+
+    <p>네이버 블로그는 JavaScript로 렌더링되는 Next.js 구조라 단순 크롤러로는 글 목록을 가져올 수 없어요. 이 파이프라인은 두 단계로 동작해요.</p>
+
+    <table>
+      <thead>
+        <tr><th>단계</th><th>방법</th><th>역할</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>① 글 목록 수집</strong></td>
+          <td><code>requests</code> JSON API</td>
+          <td>네이버 내부 API(<code>/api/blogs/komx3/post-list</code>)를 직접 호출해 전체 logNo 목록을 수집</td>
+        </tr>
+        <tr>
+          <td><strong>② 본문 수집</strong></td>
+          <td><code>Playwright</code> 브라우저</td>
+          <td>각 글을 실제 Chromium으로 열어 JS 렌더링 후 본문 파싱</td>
+        </tr>
+        <tr>
+          <td><strong>③ 저장</strong></td>
+          <td>Markdown 변환</td>
+          <td>YAML frontmatter + 본문을 <code>.md</code> 파일로 저장</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box note">
+      <span class="info-icon">💡</span>
+      <div><code>--resume</code> 옵션 덕분에 이미 수집한 글은 건너뛰어요. 새 글만 추가 추출하면 돼요.</div>
+    </div>
+  </section>
+
+  <!-- 2. SETUP -->
+  <section id="setup">
+    <div class="section-eyebrow">Section 02</div>
+    <h2>최초 1회 환경 설정</h2>
+    <p>처음 한 번만 하면 돼요. 이후 정기 실행 때는 이 단계를 건너뛰세요.</p>
+
+    <div class="steps">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">프로젝트 폴더 준비</div>
+          <p>압축 파일을 풀어 작업 폴더를 만들어요.</p>
+
+          <span class="os-tag os-mac">macOS</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>mkdir -p ~/think-tank/naver-blog-scraper
+unzip ~/Downloads/naver-blog-scraper-mac.zip \
+      -d ~/think-tank/naver-blog-scraper</pre>
+          </div>
+
+          <span class="os-tag os-win">Windows</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>mkdir ~\kom-tank\naver-blog-scraper
+Expand-Archive ~\Downloads\naver-blog-scraper-win.zip `
+               ~\kom-tank\naver-blog-scraper</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">가상환경 생성 및 패키지 설치</div>
+          <p>Python 패키지를 전역 환경과 분리해 설치해요.</p>
+
+          <span class="os-tag os-mac">macOS</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>cd ~/think-tank/naver-blog-scraper
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt</pre>
+          </div>
+
+          <span class="os-tag os-win">Windows</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>cd ~\kom-tank\naver-blog-scraper
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre>
+          </div>
+
+          <div class="info-box warn">
+            <span class="info-icon">⚠️</span>
+            <div>Windows에서 <code>Activate.ps1</code> 실행 오류가 나면:<br>
+            <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> 실행 후 재시도</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Playwright 브라우저 설치 <span style="font-weight:400;color:var(--muted);font-size:13px">(약 200MB, 최초 1회)</span></div>
+          <p>본문 수집에 사용하는 Chromium 브라우저를 설치해요.</p>
+
+          <span class="os-tag os-both">macOS / Windows 공통</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal / PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>playwright install chromium</pre>
+          </div>
+
+          <div class="info-box tip">
+            <span class="info-icon">✅</span>
+            <div>설치 완료 메시지 확인 후 다음 단계로. 이후엔 이 명령어 불필요.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /steps -->
+  </section>
+
+  <!-- 3. RUN -->
+  <section id="run">
+    <div class="section-eyebrow">Section 03</div>
+    <h2>새 글 추출하기 (정기 실행)</h2>
+    <p>환경 설정 이후엔 이것만 하면 돼요. 새 글이 쌓였을 때마다 실행하세요.</p>
+
+    <div class="steps">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">폴더 이동 + 가상환경 활성화</div>
+
+          <span class="os-tag os-mac">macOS</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>cd ~/think-tank/naver-blog-scraper
+source venv/bin/activate</pre>
+          </div>
+
+          <span class="os-tag os-win">Windows</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>cd ~\kom-tank\naver-blog-scraper
+.\venv\Scripts\Activate.ps1</pre>
+          </div>
+
+          <p style="font-size:13px;color:var(--muted)">프롬프트 앞에 <code>(venv)</code> 가 붙으면 활성화 완료.</p>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">새 글만 추가 수집</div>
+          <p><code>--resume</code> 옵션을 쓰면 이미 수집한 글은 건너뛰고 새 글만 가져와요.</p>
+
+          <span class="os-tag os-both">macOS / Windows 공통</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal / PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>python3 scraper.py --resume   <span class="c"># macOS</span>
+python  scraper.py --resume   <span class="c"># Windows</span></pre>
+          </div>
+
+          <div class="info-box tip">
+            <span class="info-icon">💡</span>
+            <div>처음 전체 수집할 때는 <code>--resume</code> 없이 실행. 이후 정기 추출은 항상 <code>--resume</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">결과 통계 확인</div>
+
+          <span class="os-tag os-both">macOS / Windows 공통</span>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-label">Terminal / PowerShell</span>
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+            </div>
+            <pre>python3 verify.py   <span class="c"># macOS</span>
+python  verify.py   <span class="c"># Windows</span></pre>
+          </div>
+
+          <p>연도별 글 수, 카테고리 TOP 10, 태그 TOP 20 등 통계를 확인할 수 있어요.</p>
+        </div>
+      </div>
+
+    </div><!-- /steps -->
+
+    <!-- 명령어 치트시트 -->
+    <h3>명령어 치트시트</h3>
+    <table>
+      <thead>
+        <tr><th>상황</th><th>명령어</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>처음 전체 수집</td><td><code>python3 scraper.py</code></td></tr>
+        <tr><td>새 글만 추가 수집</td><td><code>python3 scraper.py --resume</code></td></tr>
+        <tr><td>테스트 (5개만)</td><td><code>python3 scraper.py --limit 5</code></td></tr>
+        <tr><td>중단 후 재개</td><td><code>python3 scraper.py --resume</code></td></tr>
+        <tr><td>결과 통계 보기</td><td><code>python3 verify.py</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. OUTPUT -->
+  <section id="output">
+    <div class="section-eyebrow">Section 04</div>
+    <h2>결과물 확인 및 Obsidian 연동</h2>
+
+    <h3>저장 위치</h3>
+    <span class="os-tag os-mac">macOS</span>
+    <div class="tree">
+~/think-tank/<br>
+├── <span class="hl">naver-archive/</span>          <span class="dim">← 수집된 Markdown 파일들</span><br>
+│   ├── 2003-04-15_첫번째글_12345678.md<br>
+│   ├── 2018-03-22_도쿄전시후기_23456789.md<br>
+│   └── .progress.json      <span class="dim">← 진행 상태 (삭제 금지)</span><br>
+└── naver-blog-scraper/     <span class="dim">← 스크립트 폴더</span>
+    </div>
+
+    <span class="os-tag os-win">Windows</span>
+    <div class="tree">
+~\kom-tank\<br>
+├── <span class="hl">naver-archive\</span>          <span class="dim">← 수집된 Markdown 파일들</span><br>
+│   ├── 2003-04-15_첫번째글_12345678.md<br>
+│   └── .progress.json<br>
+└── naver-blog-scraper\
+    </div>
+
+    <h3>Markdown 파일 구조</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">예시 파일</span>
+      </div>
+      <pre><span class="c">---</span>
+<span class="k">title:</span> <span class="s">"도쿄 긴자 전시 후기"</span>
+<span class="k">date:</span> 2018-03-22
+<span class="k">category:</span> 전시
+<span class="k">tags:</span>
+  - 도쿄
+  - 긴자
+<span class="k">source:</span> https://m.blog.naver.com/komx3/221234567
+<span class="k">logNo:</span> <span class="s">"221234567"</span>
+<span class="c">---</span>
+
+본문 내용 (Markdown 변환)...</pre>
+    </div>
+
+    <h3>Obsidian vault 연동</h3>
+    <p><code>naver-archive</code> 폴더를 Obsidian vault에 심볼릭 링크로 연결하면 글이 쌓일 때마다 자동으로 vault에 반영돼요.</p>
+
+    <span class="os-tag os-mac">macOS</span>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">Terminal</span>
+        <button class="copy-btn" onclick="copyCode(this)">복사</button>
+      </div>
+      <pre>ln -s ~/think-tank/naver-archive \
+      ~/path/to/obsidian-vault/Naver-Blog</pre>
+    </div>
+
+    <span class="os-tag os-win">Windows</span>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">PowerShell (관리자 권한)</span>
+        <button class="copy-btn" onclick="copyCode(this)">복사</button>
+      </div>
+      <pre>New-Item -ItemType Junction `
+  -Path "C:\Users\eunhy\obsidian-komx2\Naver-Blog" `
+  -Target "C:\Users\eunhy\kom-tank\naver-archive"</pre>
+    </div>
+  </section>
+
+  <!-- 5. TROUBLE -->
+  <section id="trouble">
+    <div class="section-eyebrow">Section 05</div>
+    <h2>문제 해결</h2>
+
+    <table>
+      <thead>
+        <tr><th>증상</th><th>원인</th><th>해결</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>글 목록 0개</td>
+          <td>네이버 API 구조 변경</td>
+          <td><code>python3 find_api.py</code> 실행 후 Claude에 결과 붙여넣기</td>
+        </tr>
+        <tr>
+          <td>본문 수집 느림</td>
+          <td>Playwright JS 렌더링 대기</td>
+          <td>정상. 글당 약 3~5초 소요</td>
+        </tr>
+        <tr>
+          <td>중간에 멈춤</td>
+          <td>네트워크 오류 / 맥북 슬립</td>
+          <td><code>--resume</code> 으로 재실행</td>
+        </tr>
+        <tr>
+          <td><code>(venv)</code> 안 붙음</td>
+          <td>가상환경 미활성화</td>
+          <td><code>source venv/bin/activate</code> 재실행</td>
+        </tr>
+        <tr>
+          <td>날짜가 <code>unknown</code></td>
+          <td>날짜 파싱 실패</td>
+          <td>파일명 날짜로 수동 수정 또는 무시</td>
+        </tr>
+        <tr>
+          <td>이미지 안 보임</td>
+          <td>URL 링크만 저장됨</td>
+          <td>Obsidian에서 원본 URL 클릭으로 확인</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box warn">
+      <span class="info-icon">⚠️</span>
+      <div><strong>.progress.json 삭제 금지.</strong> 이 파일이 없으면 <code>--resume</code> 이 작동하지 않아 전체를 다시 수집해야 해요.</div>
+    </div>
+
+    <div class="info-box note">
+      <span class="info-icon">📌</span>
+      <div>비공개 글은 수집 불가. 공개 설정된 글만 추출돼요.</div>
+    </div>
+  </section>
+
+</div><!-- /container -->
+
+<footer>
+  <div class="container">
+    <strong>komx3 · Naver Blog Archiver</strong><br>
+    think-tank / naver-blog-scraper &nbsp;·&nbsp; macOS &amp; Windows
+  </div>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '완료!';
+    setTimeout(() => btn.textContent = '복사', 1500);
+  });
+}
+</script>
+
+</body>
+</html>
