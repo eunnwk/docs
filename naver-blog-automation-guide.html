@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>네이버 블로그 자동 포스팅 가이드</title>
+  <style>
+    :root {
+      --green: #2da44e;
+      --green-light: #d4edda;
+      --blue: #0969da;
+      --blue-light: #dbeafe;
+      --yellow: #9a6700;
+      --yellow-light: #fff8c5;
+      --red: #cf222e;
+      --red-light: #ffe0e0;
+      --gray-50: #f6f8fa;
+      --gray-100: #eaeef2;
+      --gray-200: #d0d7de;
+      --gray-600: #656d76;
+      --gray-800: #1f2328;
+      --radius: 8px;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--gray-800);
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── 헤더 ── */
+    .hero {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 36px;
+      background: var(--gray-50);
+    }
+    .hero h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .hero p { color: var(--gray-600); font-size: 14px; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .badge-green { background: var(--green-light); color: #1a7f3c; }
+    .badge-blue  { background: var(--blue-light);  color: #0550ae; }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+    .toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-600); margin-bottom: 10px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin: 4px 0; }
+    .toc a { color: var(--blue); text-decoration: none; font-size: 14px; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── 섹션 ── */
+    section { margin-bottom: 48px; }
+    h2.section-title {
+      font-size: 20px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--gray-200);
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 10px;
+    }
+    p { margin-bottom: 12px; }
+
+    /* ── 탭 (Mac / Windows) ── */
+    .tabs { margin: 16px 0 0; }
+    .tab-buttons { display: flex; gap: 2px; margin-bottom: -1px; }
+    .tab-btn {
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--gray-200);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      background: var(--gray-100);
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: var(--gray-800);
+      border-color: var(--gray-200);
+    }
+    .tab-panel {
+      display: none;
+      border: 1px solid var(--gray-200);
+      border-radius: 0 var(--radius) var(--radius) var(--radius);
+      padding: 20px 24px;
+      background: #fff;
+    }
+    .tab-panel.active { display: block; }
+
+    /* ── 코드 블록 ── */
+    pre {
+      background: var(--gray-800);
+      color: #e6edf3;
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: var(--gray-100);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; }
+    .comment { color: #8b949e; }
+
+    /* ── 알림 박스 ── */
+    .callout {
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 16px 0;
+      border-left: 4px solid;
+      font-size: 14px;
+    }
+    .callout-tip   { background: var(--green-light); border-color: var(--green); }
+    .callout-info  { background: var(--blue-light);  border-color: var(--blue);  }
+    .callout-warn  { background: var(--yellow-light); border-color: var(--yellow); }
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    /* ── 단계 목록 ── */
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 0 14px;
+      margin-bottom: 20px;
+      align-items: start;
+    }
+    .steps li::before {
+      content: counter(step);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .steps .step-body { padding-top: 2px; }
+    .steps .step-body strong { display: block; font-size: 15px; margin-bottom: 4px; }
+
+    /* ── 파일 트리 ── */
+    .tree {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      line-height: 1.9;
+    }
+    .tree .folder { color: var(--blue); font-weight: 600; }
+    .tree .file   { color: var(--gray-800); }
+    .tree .note   { color: var(--gray-600); font-size: 12px; }
+
+    /* ── 플로우 다이어그램 ── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 16px 0;
+    }
+    .flow-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .flow-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .flow-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .flow-line {
+      width: 2px;
+      flex: 1;
+      min-height: 24px;
+      background: var(--gray-200);
+      margin: 3px 0;
+    }
+    .flow-content { padding-top: 6px; padding-bottom: 20px; }
+    .flow-content strong { display: block; font-size: 14px; }
+    .flow-content span { font-size: 13px; color: var(--gray-600); }
+
+    /* ── 테이블 ── */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+    th { background: var(--gray-50); padding: 10px 14px; text-align: left; border: 1px solid var(--gray-200); font-weight: 600; }
+    td { padding: 9px 14px; border: 1px solid var(--gray-200); vertical-align: top; }
+    tr:nth-child(even) td { background: var(--gray-50); }
+
+    /* ── 반응형 ── */
+    @media (max-width: 600px) {
+      body { padding: 20px 16px 60px; }
+      .hero { padding: 20px; }
+      .tab-btn { padding: 6px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 히어로 -->
+<div class="hero">
+  <h1>📝 네이버 블로그 자동 포스팅 가이드</h1>
+  <p style="margin-top:10px;">
+    <span class="badge badge-green">Python</span>
+    <span class="badge badge-blue">Playwright</span>
+    <span class="badge badge-green">Mac ✓</span>
+    <span class="badge badge-blue">Windows ✓</span>
+  </p>
+  <p style="margin-top:14px;">
+    <code>naver_blog_post.py</code> 스크립트를 이용해 <strong>이미지·지도 포함 블로그 포스팅</strong>을 자동으로 올리는 방법을 설명합니다.<br>
+    처음 세팅은 15분이면 끝나고, 이후에는 스크립트 실행 → 번호 선택 → 로그인 한 번이면 게시 완료입니다.
+  </p>
+</div>
+
+<!-- 목차 -->
+<nav class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#overview">동작 원리</a></li>
+    <li><a href="#prereq">사전 준비</a></li>
+    <li><a href="#install">설치 (Mac / Windows)</a></li>
+    <li><a href="#folder">폴더 구조 &amp; 이미지 준비</a></li>
+    <li><a href="#run">스크립트 실행 방법</a></li>
+    <li><a href="#workflow">단계별 워크플로우</a></li>
+    <li><a href="#test">테스트 스크립트 (단건 확인)</a></li>
+    <li><a href="#multi-device">다른 기기에서 사용하기 (맥 · 윈도우)</a></li>
+    <li><a href="#faq">자주 묻는 질문 &amp; 문제 해결</a></li>
+  </ol>
+</nav>
+
+<!-- 1. 동작 원리 -->
+<section id="overview">
+  <h2 class="section-title">1. 동작 원리</h2>
+  <p>이 스크립트는 <strong>Playwright</strong>라는 도구를 사용합니다. Playwright는 사람이 마우스·키보드로 하는 것처럼 브라우저를 직접 조작합니다. 쉽게 말하면 <em>"로봇이 대신 블로그 작성 창을 열고, 글을 입력하고, 이미지를 첨부하고, 발행 버튼을 누른다"</em>고 생각하시면 됩니다.</p>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">▶</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <strong>스크립트 실행 &amp; 포스팅 선택</strong>
+        <span>터미널에서 python 명령어 실행 → 올릴 글 번호 입력</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">🔐</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <strong>네이버 로그인</strong>
+        <span>자동으로 브라우저가 열림 → 직접 네이버 로그인 → 완료되면 자동 진행</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">✍️</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <strong>제목·본문 자동 입력</strong>
+        <span>reviews_맛집_2024이후.md 파일에서 내용을 읽어 자동 입력</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">🖼️</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <strong>이미지 자동 삽입</strong>
+        <span>images/ 폴더에서 이름 규칙에 맞는 파일 자동 탐색 후 업로드</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">📍</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <strong>네이버 지도 삽입 (국내만)</strong>
+        <span>국내 장소는 지도 검색 후 자동 삽입 / 해외는 자동 건너뜀</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left">
+        <div class="flow-icon">🚀</div>
+      </div>
+      <div class="flow-content">
+        <strong>발행</strong>
+        <span>태그 입력 후 발행 완료</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 사전 준비 -->
+<section id="prereq">
+  <h2 class="section-title">2. 사전 준비</h2>
+  <table>
+    <thead>
+      <tr><th>항목</th><th>필요한 것</th><th>확인 방법</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Python 3.9+</strong></td>
+        <td>파이썬 인터프리터</td>
+        <td><code>python --version</code> 또는 <code>python3 --version</code></td>
+      </tr>
+      <tr>
+        <td><strong>pip</strong></td>
+        <td>파이썬 패키지 설치 도구 (Python 설치 시 자동 포함)</td>
+        <td><code>pip --version</code></td>
+      </tr>
+      <tr>
+        <td><strong>Google Drive</strong></td>
+        <td>파일 동기화 앱 (데스크탑 앱 설치 필요)</td>
+        <td><a href="https://drive.google.com/drive/downloads" target="_blank">drive.google.com/drive/downloads</a></td>
+      </tr>
+      <tr>
+        <td><strong>네이버 계정</strong></td>
+        <td>rreview 블로그 관리자 계정</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-info">
+    <strong>💡 Python이 없다면?</strong>
+    <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>에서 설치하세요.
+    Windows는 설치 중 <strong>"Add Python to PATH"</strong> 체크박스를 반드시 체크해야 합니다.
+  </div>
+</section>
+
+<!-- 3. 설치 -->
+<section id="install">
+  <h2 class="section-title">3. 설치</h2>
+  <p>처음 사용하는 기기에서 딱 한 번만 하면 됩니다.</p>
+
+  <div class="tabs" id="install-tabs">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab('install', 'mac')">🍎 Mac</button>
+      <button class="tab-btn" onclick="switchTab('install', 'win')">🪟 Windows</button>
+    </div>
+
+    <div id="install-mac" class="tab-panel active">
+      <ol class="steps">
+        <li>
+          <div class="step-body">
+            <strong>터미널 열기</strong>
+            <code>Command(⌘) + Space</code> → <em>"터미널"</em> 검색 → Enter
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>스크립트 폴더로 이동</strong>
+            <p>아래 명령어를 복사해 터미널에 붙여넣기 하세요.</p>
+            <pre><code>cd ~/Library/CloudStorage/GoogleDrive-<span class="comment">내계정@gmail.com</span>/내\ 드라이브/naver-archive</code></pre>
+            <div class="callout callout-tip">
+              <strong>📁 폴더를 찾기 어렵다면?</strong>
+              Finder에서 naver-archive 폴더를 찾아 터미널 창에 드래그하면 경로가 자동 입력됩니다.
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Playwright 설치</strong>
+            <pre><code>pip3 install playwright</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Chromium 브라우저 설치</strong>
+            <p>Playwright가 내부적으로 사용하는 브라우저를 설치합니다. 용량이 약 200MB이므로 인터넷 연결을 확인하세요.</p>
+            <pre><code>playwright install chromium</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>설치 확인</strong>
+            <pre><code>python3 -c "from playwright.sync_api import sync_playwright; print('설치 완료 ✅')"</code></pre>
+            <p><em>"설치 완료 ✅"</em> 가 출력되면 정상입니다.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div id="install-win" class="tab-panel">
+      <ol class="steps">
+        <li>
+          <div class="step-body">
+            <strong>PowerShell 열기</strong>
+            <code>Windows 키</code> → <em>"PowerShell"</em> 검색 → Enter
+            <div class="callout callout-warn">
+              <strong>⚠️ 주의</strong> "Windows PowerShell"을 여세요. "명령 프롬프트(cmd)"보다 기능이 좋습니다.
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>스크립트 폴더로 이동</strong>
+            <pre><code>cd "G:\내 드라이브\naver-archive"</code></pre>
+            <div class="callout callout-tip">
+              <strong>📁 드라이브 문자가 G:가 아니라면?</strong>
+              파일 탐색기에서 "Google Drive"가 어느 드라이브로 마운트됐는지 확인하세요 (E:, F: 등일 수 있습니다).
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Playwright 설치</strong>
+            <pre><code>pip install playwright</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Chromium 브라우저 설치</strong>
+            <pre><code>playwright install chromium</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>설치 확인</strong>
+            <pre><code>python -c "from playwright.sync_api import sync_playwright; print('설치 완료')"</code></pre>
+          </div>
+        </li>
+      </ol>
+
+      <div class="callout callout-warn">
+        <strong>🛡️ "실행 정책" 오류가 난다면?</strong>
+        PowerShell을 <strong>관리자 권한</strong>으로 실행 후 아래 명령어를 한 번만 실행하세요.
+        <pre style="margin-top:8px;"><code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 폴더 구조 & 이미지 준비 -->
+<section id="folder">
+  <h2 class="section-title">4. 폴더 구조 &amp; 이미지 준비</h2>
+
+  <h3>폴더 구조</h3>
+  <div class="tree">
+    <div><span class="folder">naver-archive/</span></div>
+    <div>&nbsp;├── <span class="file">naver_blog_post.py</span> <span class="note">← 메인 자동화 스크립트</span></div>
+    <div>&nbsp;├── <span class="file">naver_post_test.py</span> <span class="note">← 단건 테스트용 스크립트</span></div>
+    <div>&nbsp;├── <span class="file">reviews_맛집_2024이후.md</span> <span class="note">← 블로그 포스팅 원고</span></div>
+    <div>&nbsp;├── <span class="file">tweets_맛집_2024이후.md</span> <span class="note">← 트위터용 원고</span></div>
+    <div>&nbsp;└── <span class="folder">images/</span> <span class="note">← 여기에 이미지 넣기</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">01_오부이용_1.jpg</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">01_오부이용_2.jpg</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">03_밀본_1.jpg</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="note">...</span></div>
+  </div>
+
+  <h3>이미지 파일 이름 규칙</h3>
+  <p>이미지 파일은 아래 규칙대로 이름을 지정하면 스크립트가 자동으로 찾아서 삽입합니다.</p>
+
+  <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 18px 22px; margin: 12px 0; font-family: var(--font-mono); font-size: 14px; text-align: center; letter-spacing: .02em;">
+    <span style="color:#cf222e;">01</span>_<span style="color:#0969da;">오부이용</span>_<span style="color:#2da44e;">1</span>.jpg
+    <div style="display:flex; justify-content:center; gap:40px; margin-top:10px; font-family: sans-serif; font-size: 12px; color: var(--gray-600);">
+      <span>↑<br><span style="color:#cf222e;">포스팅 번호</span><br>(2자리)</span>
+      <span>↑<br><span style="color:#0969da;">image_key</span><br>(스크립트 내 지정)</span>
+      <span>↑<br><span style="color:#2da44e;">사진 순서</span><br>(1, 2, 3…)</span>
+    </div>
+  </div>
+
+  <h3>포스팅별 image_key 목록</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>식당명</th><th>image_key</th><th>예시 파일명</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>오부이용</td><td><code>01_오부이용</code></td><td>01_오부이용_1.jpg</td></tr>
+      <tr><td>2</td><td>리츠런던 (해외 — 지도 없음)</td><td><code>02_리츠런던</code></td><td>02_리츠런던_1.jpg</td></tr>
+      <tr><td>3</td><td>밀본</td><td><code>03_밀본</code></td><td>03_밀본_1.jpg</td></tr>
+      <tr><td>4</td><td>고디바도쿄 (해외 — 지도 없음)</td><td><code>04_고디바도쿄</code></td><td>04_고디바도쿄_1.jpg</td></tr>
+      <tr><td>5</td><td>마르케시1824 (해외 — 지도 없음)</td><td><code>05_마르케시1824</code></td><td>05_마르케시1824_1.jpg</td></tr>
+      <tr><td>6</td><td>산트유스타치오 (해외 — 지도 없음)</td><td><code>06_산트유스타치오</code></td><td>06_산트유스타치오_1.jpg</td></tr>
+      <tr><td>7</td><td>수수</td><td><code>07_수수</code></td><td>07_수수_1.jpg</td></tr>
+      <tr><td>8</td><td>도쿠</td><td><code>08_도쿠</code></td><td>08_도쿠_1.jpg</td></tr>
+      <tr><td>9</td><td>쉐누</td><td><code>09_쉐누</code></td><td>09_쉐누_1.jpg</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-tip">
+    <strong>💡 이미지가 없어도 됩니다</strong>
+    images/ 폴더에 해당 포스팅의 이미지가 없으면 이미지 삽입 단계를 자동으로 건너뛰고 텍스트만 올립니다.
+  </div>
+</section>
+
+<!-- 5. 스크립트 실행 방법 -->
+<section id="run">
+  <h2 class="section-title">5. 스크립트 실행 방법</h2>
+
+  <div class="tabs" id="run-tabs">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab('run', 'mac')">🍎 Mac</button>
+      <button class="tab-btn" onclick="switchTab('run', 'win')">🪟 Windows</button>
+    </div>
+
+    <div id="run-mac" class="tab-panel active">
+      <ol class="steps">
+        <li>
+          <div class="step-body">
+            <strong>터미널에서 폴더 이동</strong>
+            <pre><code>cd ~/Library/CloudStorage/GoogleDrive-<span class="comment">내계정@gmail.com</span>/내\ 드라이브/naver-archive</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>스크립트 실행</strong>
+            <pre><code>python3 naver_blog_post.py</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>올릴 글 선택</strong>
+            <p>아래처럼 목록이 표시됩니다. 번호를 입력하세요.</p>
+            <pre><code>=== 포스팅 목록 ===
+1. 오부이용 후기 | 금호동 프렌치 레스토랑 3회 방문
+2. 리츠런던 티 | 런던 최고의 애프터눈 티
+...
+9. 쉐누 후기 | 서울 파인다이닝
+
+올릴 번호 입력 (쉼표로 여러 개, 'all' 전체): <span class="comment">1</span></code></pre>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div id="run-win" class="tab-panel">
+      <ol class="steps">
+        <li>
+          <div class="step-body">
+            <strong>PowerShell에서 폴더 이동</strong>
+            <pre><code>cd "G:\내 드라이브\naver-archive"</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>스크립트 실행</strong>
+            <pre><code>python naver_blog_post.py</code></pre>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>올릴 글 선택</strong>
+            <p>번호를 입력하거나, 여러 개는 쉼표로 구분, 전체는 <code>all</code> 입력</p>
+            <pre><code>올릴 번호 입력: <span class="comment">1,3,5</span>   ← 예: 1번, 3번, 5번만 올리기
+올릴 번호 입력: <span class="comment">all</span>     ← 전체 올리기</code></pre>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 6. 단계별 워크플로우 -->
+<section id="workflow">
+  <h2 class="section-title">6. 실행 후 단계별 워크플로우</h2>
+  <p>스크립트를 실행하면 아래 순서로 자동 진행됩니다. <strong>사람이 직접 해야 하는 단계</strong>는 🙋 표시입니다.</p>
+
+  <table>
+    <thead>
+      <tr><th>단계</th><th>무슨 일이 일어나나요?</th><th>내가 할 일</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>브라우저 열림</strong></td>
+        <td>Chromium 브라우저가 자동으로 열리고 네이버 로그인 페이지로 이동</td>
+        <td>🙋 네이버 아이디/비밀번호 로그인 (최대 3분 대기)</td>
+      </tr>
+      <tr>
+        <td><strong>로그인 감지</strong></td>
+        <td>로그인 완료를 자동으로 감지 (URL 변화 확인)</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>글쓰기 페이지 이동</strong></td>
+        <td><code>rreview</code> 블로그 글쓰기 페이지 자동 이동</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>임시저장 팝업 처리</strong></td>
+        <td>"이어서 작성하시겠습니까?" 팝업이 뜨면 "새 글 작성" 자동 클릭</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>제목 입력</strong></td>
+        <td>md 파일에서 해당 포스팅 제목을 읽어 자동 입력</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>이미지 업로드</strong></td>
+        <td>images/ 폴더에서 해당 포스팅 이미지 자동 탐색 후 업로드</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>본문 입력</strong></td>
+        <td>클립보드 복사 후 Ctrl+V 방식으로 본문 자동 입력</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>네이버 지도 삽입</strong></td>
+        <td>국내 식당이면 지도 검색 후 자동 삽입 / 해외면 건너뜀</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>태그 &amp; 발행</strong></td>
+        <td>태그 입력 후 발행 버튼 클릭</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ 로그인 중 주의사항</strong>
+    로그인 후 스크립트가 자동으로 다음 단계를 진행합니다. 브라우저를 닫거나 다른 페이지로 이동하지 마세요.
+  </div>
+</section>
+
+<!-- 7. 테스트 스크립트 -->
+<section id="test">
+  <h2 class="section-title">7. 테스트 스크립트 (단건 확인)</h2>
+  <p>처음 세팅하거나 뭔가 잘 안 될 때는 <code>naver_post_test.py</code>로 먼저 테스트하세요. <strong>오부이용 포스팅 하나만</strong> 올려보며 각 단계마다 스크린샷을 저장해줍니다.</p>
+
+  <div class="tabs" id="test-tabs">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab('test', 'mac')">🍎 Mac</button>
+      <button class="tab-btn" onclick="switchTab('test', 'win')">🪟 Windows</button>
+    </div>
+    <div id="test-mac" class="tab-panel active">
+      <pre><code>python3 naver_post_test.py</code></pre>
+    </div>
+    <div id="test-win" class="tab-panel">
+      <pre><code>python naver_post_test.py</code></pre>
+    </div>
+  </div>
+
+  <p style="margin-top:14px;">실행 후 <code>screenshots/</code> 폴더가 생성되고 각 단계 스크린샷이 저장됩니다. 뭔가 실패했다면 마지막 스크린샷을 열어서 어느 단계에서 멈췄는지 확인하세요.</p>
+
+  <div class="tree" style="margin-top:12px;">
+    <div><span class="folder">screenshots/</span></div>
+    <div>&nbsp;├── <span class="file">01_write_page.png</span> <span class="note">← 글쓰기 페이지 진입 직후</span></div>
+    <div>&nbsp;├── <span class="file">02_title_done.png</span> <span class="note">← 제목 입력 완료</span></div>
+    <div>&nbsp;├── <span class="file">03_image_done.png</span> <span class="note">← 이미지 업로드 완료</span></div>
+    <div>&nbsp;└── <span class="file">04_body_done.png</span> <span class="note">← 본문 입력 완료</span></div>
+  </div>
+</section>
+
+<!-- 8. 다른 기기에서 사용하기 -->
+<section id="multi-device">
+  <h2 class="section-title">8. 다른 기기에서 사용하기</h2>
+  <p>구글 드라이브 덕분에 스크립트와 이미지·원고 파일은 이미 어디서든 접근 가능합니다. <strong>새 기기에서 딱 한 번</strong> 환경 설치만 하면 됩니다.</p>
+
+  <ol class="steps">
+    <li>
+      <div class="step-body">
+        <strong>Google Drive 데스크탑 앱 설치 &amp; 로그인</strong>
+        <a href="https://drive.google.com/drive/downloads" target="_blank">drive.google.com/drive/downloads</a> 에서 설치 후 같은 계정으로 로그인하면 파일이 자동 동기화됩니다.
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <strong>Python 설치 (없는 경우)</strong>
+        <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>에서 설치. Windows는 <strong>반드시 "Add Python to PATH" 체크</strong>.
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <strong>Playwright + Chromium 설치</strong>
+        <div class="tabs" id="multi-tabs">
+          <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('multi', 'mac')">🍎 Mac</button>
+            <button class="tab-btn" onclick="switchTab('multi', 'win')">🪟 Windows</button>
+          </div>
+          <div id="multi-mac" class="tab-panel active">
+            <pre><code>pip3 install playwright
+playwright install chromium</code></pre>
+          </div>
+          <div id="multi-win" class="tab-panel">
+            <pre><code>pip install playwright
+playwright install chromium</code></pre>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <strong>이제부터는 동일하게 사용</strong>
+        폴더 이동 후 <code>python naver_blog_post.py</code> (또는 Mac은 <code>python3</code>) 실행.
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout callout-info">
+    <strong>🔄 파일은 자동 동기화</strong>
+    원고(md 파일)나 이미지를 어느 기기에서 수정해도 구글 드라이브가 자동으로 동기화해줍니다. 항상 최신 버전을 사용할 수 있습니다.
+  </div>
+</section>
+
+<!-- 9. FAQ -->
+<section id="faq">
+  <h2 class="section-title">9. 자주 묻는 질문 &amp; 문제 해결</h2>
+
+  <h3>❓ 브라우저가 자동으로 닫혔어요</h3>
+  <p>로그인 대기 시간(3분)이 초과되면 스크립트가 종료됩니다. 다시 실행하고, 브라우저가 열리면 바로 로그인하세요.</p>
+
+  <h3>❓ "이어서 작성하시겠습니까?" 팝업이 떠요</h3>
+  <p>이전 세션에서 임시저장된 글이 있을 때 나타나는 팝업입니다. 스크립트가 자동으로 "새 글 작성"을 클릭하도록 처리되어 있으므로 별도로 조작할 필요가 없습니다.</p>
+
+  <h3>❓ 이미지가 업로드되지 않아요</h3>
+  <p>다음을 확인하세요:</p>
+  <ul style="margin-left:20px; margin-top:6px; line-height:2;">
+    <li>파일이 <code>images/</code> 폴더 안에 있는지</li>
+    <li>파일 이름이 규칙에 맞는지 (예: <code>01_오부이용_1.jpg</code>)</li>
+    <li>파일 확장자가 <code>.jpg</code> 또는 <code>.png</code>인지</li>
+  </ul>
+
+  <h3>❓ Mac에서 <code>python</code> 명령이 안 돼요</h3>
+  <p>Mac에서는 <code>python</code> 대신 <code>python3</code>를 사용하세요. <code>pip</code> 대신 <code>pip3</code>도 마찬가지입니다.</p>
+
+  <h3>❓ Windows에서 "pip는 내부 명령이 아닙니다" 오류가 나요</h3>
+  <p>Python 설치 시 "Add Python to PATH"를 체크하지 않은 경우입니다. Python을 재설치하거나, <code>py -m pip install playwright</code>로 대신 실행해보세요.</p>
+
+  <h3>❓ 네이버 지도가 삽입되지 않아요</h3>
+  <p>해외 장소(리츠런던, 고디바도쿄, 마르케시1824, 산트유스타치오)는 지도 삽입을 자동으로 건너뜁니다. 국내 장소인데도 안 된다면 장소 이름이 네이버 지도에서 검색되는지 직접 확인해보세요.</p>
+
+  <h3>❓ 스크립트 실행 중 오류가 났어요</h3>
+  <p>터미널에 출력된 에러 메시지와 <code>screenshots/</code> 폴더의 마지막 스크린샷을 확인하면 어느 단계에서 문제가 생겼는지 파악할 수 있습니다.</p>
+
+  <div class="callout callout-tip" style="margin-top:24px;">
+    <strong>💡 스크린샷으로 디버깅하기</strong>
+    문제가 생겼을 때 <code>naver_post_test.py</code>를 먼저 실행해보세요. 단계별 스크린샷을 저장해줘서 어느 단계에서 멈췄는지 쉽게 파악할 수 있습니다.
+  </div>
+</section>
+
+<hr style="border: none; border-top: 1px solid var(--gray-200); margin: 40px 0 24px;" />
+<p style="font-size:13px; color: var(--gray-600); text-align:center;">
+  naver-archive 자동화 프로젝트 · 문의사항은 이슈로 남겨주세요
+</p>
+
+<script>
+  function switchTab(group, os) {
+    // 해당 그룹의 모든 버튼과 패널
+    const container = document.getElementById(group + '-tabs');
+    if (!container) return;
+    container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    container.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    // 활성화
+    const activeBtn = container.querySelector(`.tab-btn[onclick*="'${os}'"]`);
+    const activePanel = document.getElementById(group + '-' + os);
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activePanel) activePanel.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
