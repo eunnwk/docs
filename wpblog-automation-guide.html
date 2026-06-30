@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블로그 자동화 워크플로 가이드</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #24292e;
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+    h1 { font-size: 28px; font-weight: 700; border-bottom: 2px solid #e1e4e8; padding-bottom: 12px; margin-bottom: 32px; }
+    h2 { font-size: 20px; font-weight: 600; margin: 48px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #e1e4e8; }
+    h3 { font-size: 16px; font-weight: 600; margin: 28px 0 10px; color: #0366d6; }
+    p { margin: 10px 0; }
+    ul, ol { padding-left: 24px; margin: 10px 0; }
+    li { margin: 4px 0; }
+    code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #d63384;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: #24292e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th {
+      background: #f6f8fa;
+      text-align: left;
+      padding: 8px 12px;
+      border: 1px solid #e1e4e8;
+      font-weight: 600;
+    }
+    td {
+      padding: 8px 12px;
+      border: 1px solid #e1e4e8;
+      vertical-align: top;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-right: 4px;
+    }
+    .badge-auto { background: #dff0d8; color: #3c763d; }
+    .badge-manual { background: #d9edf7; color: #31708f; }
+    .tip {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .folder-tree {
+      background: #f6f8fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      padding: 16px 20px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .folder-tree .dir { color: #0366d6; font-weight: 600; }
+    .folder-tree .comment { color: #6a737d; }
+  </style>
+</head>
+<body>
+
+<h1>블로그 자동화 워크플로 가이드</h1>
+
+<!-- ── 폴더 구조 ── -->
+<h2>폴더 구조</h2>
+<div class="folder-tree">
+  outputs/<br>
+  ├── <span class="dir">wp_post.py</span> <span class="comment">← 자동 포스팅 스크립트</span><br>
+  ├── 블로그_자동화_가이드.html <span class="comment">← 이 문서</span><br>
+  └── <span class="dir">이탈리아2026_리뷰포스팅/</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="dir">images/</span> <span class="comment">← 대표사진 폴더</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── 01.jpg<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── 02.jpg<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── ...<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;├── 01_호텔베르나_밀라노.md<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;├── 02_호텔제니오_로마.md<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;└── ...
+</div>
+
+<!-- ── 자동화 항목 ── -->
+<h2>포스팅 자동화 항목</h2>
+<p>스크립트 실행 시 아래 항목이 자동 처리됩니다.</p>
+<ul>
+  <li><span class="badge badge-auto">자동</span> 제목, 본문 마크다운 → HTML 변환</li>
+  <li><span class="badge badge-auto">자동</span> 카테고리 생성 및 지정 (호텔 / 카페 / 레스토랑 / 디저트)</li>
+  <li><span class="badge badge-auto">자동</span> 해시태그 → 워드프레스 태그 지정</li>
+  <li><span class="badge badge-auto">자동</span> <code>이탈리아2026</code> 태그 자동 추가</li>
+  <li><span class="badge badge-auto">자동</span> 대표사진 업로드 및 지정 (images/ 폴더 기준)</li>
+  <li><span class="badge badge-auto">자동</span> Schema.org JSON-LD 구조화 데이터 삽입 (SEO + AI 크롤링)</li>
+  <li><span class="badge badge-auto">자동</span> 영문 요약(English Summary) 박스 삽입</li>
+  <li><span class="badge badge-auto">자동</span> 쿠팡 파트너스 배너 + 안내 문구 삽입</li>
+  <li><span class="badge badge-auto">자동</span> 댓글 비활성화, 핑백 비활성화</li>
+  <li><span class="badge badge-manual">수동</span> 대표사진 파일 images/ 폴더에 저장</li>
+  <li><span class="badge badge-manual">수동</span> .md 파일 작성 및 영문 요약 섹션 작성</li>
+  <li><span class="badge badge-manual">수동</span> wp-admin에서 draft 확인 후 publish</li>
+</ul>
+
+<!-- ── 실행 방법 ── -->
+<h2>스크립트 실행 방법</h2>
+
+<h3>환경 준비 (최초 1회)</h3>
+<pre><code>python3 -m venv ~/wp_venv
+source ~/wp_venv/bin/activate
+pip install requests</code></pre>
+
+<h3>매번 실행 전</h3>
+<pre><code>source ~/wp_venv/bin/activate
+cd "폴더경로/outputs"</code></pre>
+
+<h3>실행 명령어</h3>
+<pre><code># 테스트: 01번 파일 하나만 draft로 업로드
+python3 wp_post.py
+
+# 전체 파일 draft로 업로드
+python3 wp_post.py --all
+
+# 바로 publish (draft 없이 직접 발행)
+python3 wp_post.py --publish
+
+# 전체 파일 바로 publish
+python3 wp_post.py --all --publish</code></pre>
+
+<!-- ── .md 작성 규칙 ── -->
+<h2>.md 파일 작성 규칙</h2>
+
+<h3>파일명</h3>
+<pre><code>번호_장소명_도시.md
+예: 15_카페이름_파리.md</code></pre>
+
+<h3>파일 구조</h3>
+<pre><code># [장소명] [도시] [카테고리] 솔직 후기 — [한 줄 설명]
+
+[한 줄 훅 문장]
+
+### 📍 기본 정보
+| | |
+|---|---|
+| **위치** | 주소 |
+| **분류** | 카페 / 호텔 / 레스토랑 등 |
+
+### 방문 계기
+[내용]
+
+### 경험 리뷰
+[내용]
+
+### 이 곳만의 특징
+[내용]
+
+### 이런 분께 추천합니다
+- 추천 대상 1
+- 추천 대상 2
+- 다시 방문할 것인가? → **Yes** 또는 **No**
+
+#해시태그1 #해시태그2
+
+## 🌐 English Summary
+
+**[Place Name] — [City]**
+
+Type: Hotel / Café / Restaurant | Location: [Address]
+
+[English hook sentence]
+
+- Recommended for type 1
+- Recommended for type 2
+- Would visit again: ✅ Yes 또는 ❌ No
+
+## 🐦 트위터 포스팅
+
+**옵션 1**
+[트윗]
+
+**옵션 2**
+[트윗]</code></pre>
+
+<h3>카테고리 자동 분류 기준</h3>
+<table>
+  <tr><th>분류 필드에 포함된 단어</th><th>워드프레스 카테고리</th></tr>
+  <tr><td>호텔</td><td>호텔</td></tr>
+  <tr><td>카페, 바, 커피</td><td>카페</td></tr>
+  <tr><td>젤라또, 디저트, 아이스크림</td><td>디저트</td></tr>
+  <tr><td>그 외</td><td>레스토랑</td></tr>
+</table>
+
+<!-- ── 대표사진 ── -->
+<h2>대표사진 규칙</h2>
+<ul>
+  <li>폴더: <code>이탈리아2026_리뷰포스팅/images/</code></li>
+  <li>파일명: 포스트 번호 두 자리 (예: <code>01.jpg</code>, <code>15.png</code>)</li>
+  <li>지원 형식: jpg, jpeg, png, webp</li>
+  <li>사진 없으면 대표사진 없이 포스팅 진행 (에러 없음)</li>
+</ul>
+
+<!-- ── 새 시리즈 ── -->
+<h2>새 여행 시리즈 추가 시</h2>
+<ol>
+  <li>새 폴더 생성 (예: <code>파리2027_리뷰포스팅/</code>)</li>
+  <li><code>wp_post.py</code> 상단 두 줄 수정</li>
+  <li>.md 파일 작성 후 실행</li>
+</ol>
+<pre><code># wp_post.py 상단에서 수정
+POST_DIR    = Path(__file__).parent / "파리2027_리뷰포스팅"
+DEFAULT_TAG = "파리2027"</code></pre>
+
+<!-- ── WordPress 설정 ── -->
+<h2>워드프레스 관련 설정</h2>
+<table>
+  <tr><th>항목</th><th>값</th></tr>
+  <tr><td>사이트</td><td><a href="https://notsimple.net">https://notsimple.net</a></td></tr>
+  <tr><td>관리자</td><td>wp-admin</td></tr>
+  <tr><td>Application Password</td><td>wp_post.py 내 저장됨</td></tr>
+  <tr><td>llms.txt</td><td><a href="https://notsimple.net/llms.txt">https://notsimple.net/llms.txt</a></td></tr>
+</table>
+
+<!-- ── 주의사항 ── -->
+<h2>⚠️ 사용 시 주의사항</h2>
+
+<h3>실행 전 가상환경 활성화 필수</h3>
+<p>가상환경을 활성화하지 않으면 <code>requests</code> 라이브러리를 찾지 못해 에러가 납니다. 터미널을 새로 열 때마다 실행해야 합니다.</p>
+<pre><code>source ~/wp_venv/bin/activate</code></pre>
+
+<h3>중복 포스팅 주의</h3>
+<p>스크립트는 이미 올린 포스트가 있는지 확인하지 않습니다. 실수로 두 번 실행하면 동일한 포스트가 두 개 올라갑니다. wp-admin에서 수동으로 삭제해야 합니다.</p>
+<div class="tip">항상 <code>--all</code> 실행 전에 draft 목록을 wp-admin에서 확인하는 습관을 들이세요.</div>
+
+<h3>wp_post.py 위치 변경 시</h3>
+<p>현재 <code>POST_DIR</code>이 스크립트 기준 상대경로로 설정되어 있습니다. 파일을 다른 폴더로 옮기면 포스팅 폴더를 찾지 못합니다. 옮길 때는 스크립트 상단의 경로를 절대경로로 수정하세요.</p>
+<pre><code># 변경 전 (상대경로)
+POST_DIR = Path(__file__).parent / "이탈리아2026_리뷰포스팅"
+
+# 변경 후 (절대경로 예시)
+POST_DIR = Path("/Users/ux4all/Documents/이탈리아2026_리뷰포스팅")</code></pre>
+
+<h3>Application Password 보안</h3>
+<p><code>wp_post.py</code> 파일 안에 워드프레스 비밀번호가 평문으로 저장되어 있습니다. 아래 상황에서 노출되지 않도록 주의하세요.</p>
+<ul>
+  <li>깃허브 public 저장소에 올리지 않기</li>
+  <li>다른 사람과 파일 공유 시 비밀번호 줄 삭제 후 공유</li>
+  <li>비밀번호가 노출된 경우 wp-admin → Profile → Application Passwords에서 즉시 삭제 후 재발급</li>
+</ul>
+
+<!-- ── Claude 팁 ── -->
+<h2>Claude와 작업할 때 팁</h2>
+<div class="tip">
+  네이버 블로그 아카이브 파일(.md)을 공유하면 장소 추출 → 포스팅 초안 작성까지 자동 처리 가능합니다.
+</div>
+<ul>
+  <li>포스팅 형식 변경(새 섹션 추가, 광고 교체 등)은 <code>wp_post.py</code> 수정으로 전체 일괄 적용됩니다.</li>
+  <li>영문 요약은 각 .md 파일의 <code>## 🌐 English Summary</code> 섹션을 직접 수정하세요.</li>
+  <li>새 여행 시리즈마다 이 워크플로를 그대로 재사용할 수 있습니다.</li>
+</ul>
+
+</body>
+</html>
